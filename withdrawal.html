@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw — Grovia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0c1220;
+            --bg-secondary: #111927;
+            --bg-card: #162030;
+            --bg-elevated: #1c2a3a;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-gold: #ffc107;
+            --accent-red: #ff5252;
+            --text-primary: #eef2f7;
+            --text-secondary: #8fa3b8;
+            --text-muted: #506070;
+            --border: rgba(255,255,255,0.07);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 15% 20%, rgba(255,193,7,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 85% 80%, rgba(41,182,246,0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* ── Page header ── */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .back-btn:hover {
+            border-color: rgba(255,193,7,0.4);
+            color: var(--accent-gold);
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ── Balance card ── */
+        .balance-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            text-align: center;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-gold), #ff9800);
+        }
+
+        .balance-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .balance-amount {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            line-height: 1.1;
+        }
+
+        .balance-amount .currency {
+            font-size: 1.2rem;
+            vertical-align: top;
+            margin-top: 6px;
+            display: inline-block;
+        }
+
+        /* ── Plan status ── */
+        .plan-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .plan-status.checking {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .plan-status.active {
+            background: rgba(0,230,118,0.08);
+            border: 1px solid rgba(0,230,118,0.2);
+            color: var(--accent-green);
+        }
+
+        .plan-status.inactive {
+            background: rgba(255,82,82,0.08);
+            border: 1px solid rgba(255,82,82,0.2);
+            color: var(--accent-red);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .plan-status.active .status-dot { background: var(--accent-green); animation: pulse 1.4s ease infinite; }
+        .plan-status.inactive .status-dot { background: var(--accent-red); }
+        .plan-status.checking .status-dot { background: var(--text-muted); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* ── Form card ── */
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--accent-gold);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 13px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-field.has-prefix { padding-left: 30px; }
+
+        .input-field:focus {
+            border-color: rgba(255,193,7,0.5);
+            background: var(--bg-elevated);
+            box-shadow: 0 0 0 3px rgba(255,193,7,0.07);
+        }
+
+        .input-field:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .input-field::placeholder { color: var(--text-muted); }
+
+        .input-field.valid   { border-color: rgba(0,230,118,0.4); }
+        .input-field.invalid { border-color: rgba(255,82,82,0.4); }
+
+        .field-hint {
+            margin-top: 5px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .field-hint.error { color: var(--accent-red); }
+        .field-hint.success { color: var(--accent-green); }
+
+        /* ── Info table ── */
+        .info-table {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 14px;
+            font-size: 0.83rem;
+        }
+
+        .info-row + .info-row {
+            border-top: 1px solid var(--border);
+        }
+
+        .info-row span:first-child { color: var(--text-muted); }
+        .info-row span:last-child { font-weight: 600; }
+
+        /* ── Submit button ── */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            color: #0c1220;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.3px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            opacity: 0.9;
+            box-shadow: 0 6px 24px rgba(255,193,7,0.25);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .submit-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* ── Toasts ── */
+        .toasts {
+            position: fixed;
+            bottom: 20px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 13px 16px;
+            min-width: 260px;
+            max-width: 340px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative;
+        }
+
+        .toast.show { transform: translateX(0); }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before   { background: var(--accent-red); }
+        .toast.info::before    { background: var(--accent-gold); }
+
+        .toast-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; }
+
+        @media (max-width: 480px) {
+            .balance-amount { font-size: 2rem; }
+            .page-title { font-size: 1.3rem; }
+            .form-card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Page header -->
+    <div class="page-header">
+        <button class="back-btn" onclick="location.href='dashboard.html'" aria-label="Back">←</button>
+        <h1 class="page-title">Withdraw Funds</h1>
+    </div>
+
+    <!-- Balance -->
+    <div class="balance-card">
+        <div class="balance-label">Withdrawal Wallet</div>
+        <div class="balance-amount">
+            <span class="currency">$</span><span id="walletBalance">0.00</span>
+        </div>
+    </div>
+
+    <!-- Plan status -->
+    <div class="plan-status checking" id="planStatus">
+        <div class="status-dot"></div>
+        <span id="statusText">Checking plan status…</span>
+    </div>
+
+    <!-- Form card -->
+    <div class="form-card">
+
+        <div class="form-group">
+            <label class="form-label" for="withdrawAmount">Amount (USD)</label>
+            <div class="input-wrap">
+                <span class="input-prefix">$</span>
+                <input
+                    type="number"
+                    id="withdrawAmount"
+                    class="input-field has-prefix"
+                    placeholder="0.00"
+                    min="1"
+                    step="0.01"
+                    disabled
+                >
+            </div>
+            <div class="field-hint" id="amountHint">Minimum withdrawal: $1.00</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="walletAddress">BEP20 Wallet Address</label>
+            <input
+                type="text"
+                id="walletAddress"
+                class="input-field"
+                placeholder="0x..."
+                disabled
+            >
+            <div class="field-hint" id="addressHint">BEP20 (BSC) — starts with 0x, 42 characters</div>
+        </div>
+
+        <div class="info-table">
+            <div class="info-row">
+                <span>Minimum</span>
+                <span>$1.00</span>
+            </div>
+            <div class="info-row">
+                <span>Fee</span>
+                <span style="color:var(--accent-green)">Free</span>
+            </div>
+            <div class="info-row">
+                <span>Processing hours</span>
+                <span>8 AM – 5 PM daily</span>
+            </div>
+            <div class="info-row">
+                <span>Network</span>
+                <span>BEP20 (BSC)</span>
+            </div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" disabled onclick="submitWithdrawal()">
+            Submit Withdrawal Request
+        </button>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    getFirestore, doc, getDoc, updateDoc, increment,
+    addDoc, collection, query, where, getDocs, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser  = null;
+let userData     = null;
+let hasActivePlan = false;
+
+// ─── Toast ───────────────────────────────────
+function toast(type, title, msg, dur = 5000) {
+    const icons = { success: '✓', error: '✗', info: 'ℹ' };
+    const box = document.getElementById('toasts');
+    const el  = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `
+        <div class="toast-icon">${icons[type] || '·'}</div>
+        <div>
+            <div class="toast-title">${title}</div>
+            <div class="toast-msg">${msg}</div>
+        </div>
+    `;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 400);
+    }, dur);
+}
+
+// ─── Validation ──────────────────────────────
+function isValidBEP20(addr) {
+    return /^0x[a-fA-F0-9]{40}$/.test(addr);
+}
+
+// ─── Load user data ───────────────────────────
+async function loadUserData() {
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if (snap.exists()) {
+        userData = snap.data();
+        document.getElementById('walletBalance').textContent =
+            (userData.withdrawalWallet || 0).toFixed(2);
+    }
+}
+
+// ─── Check active plan ────────────────────────
+async function checkActivePlan() {
+    const statusEl  = document.getElementById('planStatus');
+    const statusTxt = document.getElementById('statusText');
+    const btn       = document.getElementById('submitBtn');
+    const amtInput  = document.getElementById('withdrawAmount');
+    const addrInput = document.getElementById('walletAddress');
+
+    try {
+        const q    = query(collection(db, 'plans'),
+                           where('uid',    '==', currentUser.uid),
+                           where('status', '==', 'active'));
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+            hasActivePlan = true;
+            statusEl.className  = 'plan-status active';
+            statusTxt.textContent = 'Active plan detected — withdrawal available.';
+            btn.disabled       = false;
+            amtInput.disabled  = false;
+            addrInput.disabled = false;
+        } else {
+            hasActivePlan = false;
+            statusEl.className  = 'plan-status inactive';
+            statusTxt.textContent = 'No active plan found. Purchase a plan to unlock withdrawals.';
+            btn.disabled = true;
+        }
+    } catch (e) {
+        console.error(e);
+        statusEl.className  = 'plan-status inactive';
+        statusTxt.textContent = 'Could not verify plan status. Try refreshing.';
+    }
+}
+
+// ─── Submit withdrawal ────────────────────────
+window.submitWithdrawal = async function () {
+    if (!currentUser || !userData) return;
+    if (!hasActivePlan) {
+        toast('error', 'No Active Plan', 'Purchase an investment plan to withdraw.');
+        return;
+    }
+
+    const amount  = parseFloat(document.getElementById('withdrawAmount').value);
+    const address = document.getElementById('walletAddress').value.trim();
+    const btn     = document.getElementById('submitBtn');
+
+    // ── Validate amount
+    if (!amount || isNaN(amount) || amount < 1) {
+        setHint('amountHint', 'Minimum withdrawal is $1.00', 'error');
+        return;
+    }
+    if (amount > (userData.withdrawalWallet || 0)) {
+        setHint('amountHint', 'Amount exceeds your available balance.', 'error');
+        return;
+    }
+
+    // ── Validate address
+    if (!address) {
+        setHint('addressHint', 'Please enter your BEP20 wallet address.', 'error');
+        return;
+    }
+    if (!isValidBEP20(address)) {
+        setHint('addressHint', 'Invalid address — must start with 0x and be 42 characters.', 'error');
+        return;
+    }
+
+    // ── Submit
+    btn.disabled  = true;
+    btn.textContent = 'Processing…';
+    btn.classList.add('loading');
+
+    try {
+        // Deduct balance
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+            withdrawalWallet: increment(-amount)
+        });
+
+        // Withdrawal record
+        await addDoc(collection(db, 'withdrawals'), {
+            uid: currentUser.uid,
+            username: userData.username || '',
+            email: userData.email || '',
+            amount,
+            walletAddress: address,
+            network: 'BEP20',
+            status: 'pending',
+            createdAt: serverTimestamp(),
+            processedAt: null,
+            adminNote: ''
+        });
+
+        // Transaction record
+        await addDoc(collection(db, 'transactions'), {
+            uid: currentUser.uid,
+            type: 'withdrawal',
+            amount,
+            walletAddress: address,
+            status: 'pending',
+            createdAt: serverTimestamp()
+        });
+
+        toast('success', 'Request Submitted', `$${amount.toFixed(2)} withdrawal is pending. Processed within working hours.`, 7000);
+
+        // Reset fields
+        document.getElementById('withdrawAmount').value = '';
+        document.getElementById('walletAddress').value  = '';
+        document.getElementById('walletAddress').className = 'input-field';
+        resetHints();
+
+        await loadUserData();
+
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Submission Failed', 'Something went wrong. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Withdrawal Request';
+        btn.classList.remove('loading');
+    }
+};
+
+// ─── Live validation ──────────────────────────
+function setHint(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className   = `field-hint ${type}`;
+}
+
+function resetHints() {
+    setHint('amountHint',  'Minimum withdrawal: $1.00', '');
+    setHint('addressHint', 'BEP20 (BSC) — starts with 0x, 42 characters', '');
+}
+
+document.getElementById('walletAddress').addEventListener('input', function () {
+    const v = this.value.trim();
+    if (!v) {
+        this.className = 'input-field';
+        setHint('addressHint', 'BEP20 (BSC) — starts with 0x, 42 characters', '');
+        return;
+    }
+    if (isValidBEP20(v)) {
+        this.className = 'input-field valid';
+        setHint('addressHint', 'Valid BEP20 address ✓', 'success');
+    } else {
+        this.className = 'input-field invalid';
+        setHint('addressHint', 'Invalid — must start with 0x and be exactly 42 characters.', 'error');
+    }
+});
+
+document.getElementById('withdrawAmount').addEventListener('input', function () {
+    const v = parseFloat(this.value);
+    if (!this.value) {
+        setHint('amountHint', 'Minimum withdrawal: $1.00', '');
+        return;
+    }
+    if (v < 1) {
+        setHint('amountHint', 'Minimum withdrawal is $1.00', 'error');
+    } else if (userData && v > (userData.withdrawalWallet || 0)) {
+        setHint('amountHint', 'Exceeds your available balance.', 'error');
+    } else {
+        setHint('amountHint', `You will receive $${v.toFixed(2)} — no fees.`, 'success');
+    }
+});
+
+// ─── Auth ─────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+    if (user) {
+        currentUser = user;
+        await loadUserData();
+        await checkActivePlan();
+    } else {
+        location.href = 'login.html';
+    }
+});
+</script>
+</body>
+</html>
