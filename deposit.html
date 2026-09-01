@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit — Grovia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0c1220;
+            --bg-secondary: #111927;
+            --bg-card: #162030;
+            --bg-elevated: #1c2a3a;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-gold: #ffc107;
+            --accent-red: #ff5252;
+            --text-primary: #eef2f7;
+            --text-secondary: #8fa3b8;
+            --text-muted: #506070;
+            --border: rgba(255,255,255,0.07);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 10% 20%, rgba(0,230,118,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 80%, rgba(41,182,246,0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* ── Page header ── */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .back-btn:hover {
+            border-color: rgba(0,230,118,0.4);
+            color: var(--accent-green);
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ── Balance card ── */
+        .balance-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            text-align: center;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+        }
+
+        .balance-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .balance-amount {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            line-height: 1.1;
+        }
+
+        .balance-amount .currency {
+            font-size: 1.2rem;
+            vertical-align: top;
+            margin-top: 6px;
+            display: inline-block;
+        }
+
+        /* ── Wallet address box ── */
+        .address-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .address-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .address-network {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            background: rgba(41,182,246,0.1);
+            border: 1px solid rgba(41,182,246,0.2);
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .address-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: var(--accent-blue);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            word-break: break-all;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            line-height: 1.6;
+            user-select: all;
+        }
+
+        .address-text:hover {
+            background: rgba(41,182,246,0.06);
+            border-color: rgba(41,182,246,0.25);
+        }
+
+        .copy-btn {
+            padding: 9px 22px;
+            border: 1px solid rgba(41,182,246,0.3);
+            border-radius: var(--radius-sm);
+            background: rgba(41,182,246,0.1);
+            color: var(--accent-blue);
+            font-family: var(--font-body);
+            font-size: 0.83rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-blue);
+            color: #0c1220;
+            border-color: var(--accent-blue);
+        }
+
+        .copy-btn.copied {
+            background: rgba(0,230,118,0.15);
+            color: var(--accent-green);
+            border-color: rgba(0,230,118,0.3);
+        }
+
+        /* ── Steps hint ── */
+        .steps-hint {
+            background: rgba(0,230,118,0.05);
+            border: 1px solid rgba(0,230,118,0.12);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+
+        .steps-hint-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent-green);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .steps-hint ol {
+            padding-left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .steps-hint li {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ── Form card ── */
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 7px;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-prefix {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--accent-green);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-field.has-prefix { padding-left: 28px; }
+
+        .input-field:focus {
+            border-color: rgba(0,230,118,0.45);
+            background: var(--bg-elevated);
+            box-shadow: 0 0 0 3px rgba(0,230,118,0.06);
+        }
+
+        .input-field::placeholder { color: var(--text-muted); }
+
+        .field-hint {
+            margin-top: 5px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .field-hint.error   { color: var(--accent-red); }
+        .field-hint.success { color: var(--accent-green); }
+
+        /* ── Upload area ── */
+        .upload-zone {
+            position: relative;
+            border: 1.5px dashed rgba(255,255,255,0.12);
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: rgba(0,230,118,0.4);
+            background: rgba(0,230,118,0.03);
+        }
+
+        .upload-zone.has-file {
+            border-color: rgba(0,230,118,0.4);
+            background: rgba(0,230,118,0.04);
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .upload-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .upload-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .upload-success {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        .upload-success.show { display: flex; }
+
+        /* Preview thumbnail */
+        .preview-wrap {
+            display: none;
+            margin-top: 10px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            max-height: 140px;
+        }
+
+        .preview-wrap.show { display: block; }
+
+        .preview-wrap img {
+            width: 100%;
+            max-height: 140px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+        }
+
+        /* ── Info table ── */
+        .info-table {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            font-size: 0.83rem;
+        }
+
+        .info-row + .info-row { border-top: 1px solid var(--border); }
+
+        .info-row span:first-child { color: var(--text-muted); }
+        .info-row span:last-child  { font-weight: 600; }
+
+        /* ── Submit button ── */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            color: #0c1220;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.3px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            opacity: 0.9;
+            box-shadow: 0 6px 24px rgba(0,230,118,0.22);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ── Toasts ── */
+        .toasts {
+            position: fixed;
+            bottom: 20px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 13px 16px;
+            min-width: 260px;
+            max-width: 340px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative;
+        }
+
+        .toast.show { transform: translateX(0); }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before   { background: var(--accent-red); }
+        .toast.info::before    { background: var(--accent-blue); }
+
+        .toast-icon  { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg   { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; }
+
+        @media (max-width: 480px) {
+            .balance-amount { font-size: 2rem; }
+            .page-title     { font-size: 1.3rem; }
+            .form-card      { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Page header -->
+    <div class="page-header">
+        <button class="back-btn" onclick="location.href='dashboard.html'" aria-label="Back">←</button>
+        <h1 class="page-title">Deposit Funds</h1>
+    </div>
+
+    <!-- Balance -->
+    <div class="balance-card">
+        <div class="balance-label">Deposit Wallet Balance</div>
+        <div class="balance-amount">
+            <span class="currency">$</span><span id="depositBalance">0.00</span>
+        </div>
+    </div>
+
+    <!-- Wallet address -->
+    <div class="address-card">
+        <div class="address-label">Send Payment To</div>
+        <div class="address-network">BEP20 · BSC Network Only</div>
+        <div class="address-text" id="walletAddress" onclick="copyAddress()" title="Click to copy">
+            0x1234567890ABCDEF1234567890ABCDEF12345678
+        </div>
+        <button class="copy-btn" id="copyBtn" onclick="copyAddress()">📋 Copy Address</button>
+    </div>
+
+    <!-- How to deposit -->
+    <div class="steps-hint">
+        <div class="steps-hint-title">How to Deposit</div>
+        <ol>
+            <li>Copy the wallet address above and send USDT (BEP20) to it.</li>
+            <li>Take a screenshot of your payment confirmation.</li>
+            <li>Fill in your name, the amount you sent, and upload the screenshot.</li>
+            <li>Submit — your wallet will be credited after admin review.</li>
+        </ol>
+    </div>
+
+    <!-- Form -->
+    <div class="form-card">
+
+        <div class="form-group">
+            <label class="form-label" for="fullName">Full Name</label>
+            <input
+                type="text"
+                id="fullName"
+                class="input-field"
+                placeholder="Enter your full name"
+                autocomplete="name"
+            >
+            <div class="field-hint" id="nameHint"></div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="depositAmount">Amount Sent (USD)</label>
+            <div class="input-wrap">
+                <span class="input-prefix">$</span>
+                <input
+                    type="number"
+                    id="depositAmount"
+                    class="input-field has-prefix"
+                    placeholder="0.00"
+                    min="10"
+                    step="0.01"
+                >
+            </div>
+            <div class="field-hint" id="amountHint">Minimum deposit: $10.00</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Payment Screenshot</label>
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="screenshotInput" accept="image/*">
+                <span class="upload-icon">📸</span>
+                <div class="upload-text">Tap to upload your payment screenshot</div>
+                <div class="upload-sub">JPG, PNG, WEBP — max 5 MB</div>
+                <div class="upload-success" id="uploadSuccess">
+                    ✓ Screenshot ready
+                </div>
+            </div>
+            <div class="preview-wrap" id="previewWrap">
+                <img id="previewImg" src="" alt="Payment screenshot preview">
+            </div>
+            <div class="field-hint" id="screenshotHint"></div>
+        </div>
+
+        <div class="info-table">
+            <div class="info-row">
+                <span>Minimum</span>
+                <span>$10.00</span>
+            </div>
+            <div class="info-row">
+                <span>Network</span>
+                <span>BEP20 (BSC)</span>
+            </div>
+            <div class="info-row">
+                <span>Processing</span>
+                <span>After admin review</span>
+            </div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitDeposit()">
+            Submit Deposit Request
+        </button>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    getFirestore, doc, getDoc,
+    addDoc, collection, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser        = null;
+let userData           = null;
+let uploadedImageB64   = null;
+
+// ─── Toast ───────────────────────────────────
+function toast(type, title, msg, dur = 5000) {
+    const icons = { success: '✓', error: '✗', info: 'ℹ' };
+    const box = document.getElementById('toasts');
+    const el  = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `
+        <div class="toast-icon">${icons[type] || '·'}</div>
+        <div>
+            <div class="toast-title">${title}</div>
+            <div class="toast-msg">${msg}</div>
+        </div>
+    `;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 400);
+    }, dur);
+}
+
+// ─── Hint helpers ─────────────────────────────
+function setHint(id, msg, type = '') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className = `field-hint ${type}`;
+}
+
+// ─── Copy address ─────────────────────────────
+window.copyAddress = function () {
+    const addr = document.getElementById('walletAddress').textContent.trim();
+    const btn  = document.getElementById('copyBtn');
+    navigator.clipboard.writeText(addr).then(() => {
+        btn.textContent = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = '📋 Copy Address';
+            btn.classList.remove('copied');
+        }, 2500);
+    }).catch(() => toast('error', 'Copy Failed', 'Could not copy. Please copy manually.'));
+};
+
+// ─── Image compression ────────────────────────
+function compressImage(file, maxW = 900, quality = 0.65) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                let w = img.width, h = img.height;
+                if (w > maxW) { h = Math.round((maxW / w) * h); w = maxW; }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// ─── File input handler ───────────────────────
+document.getElementById('screenshotInput').addEventListener('change', async function (e) {
+    const file = e.target.files[0];
+    const zone    = document.getElementById('uploadZone');
+    const success = document.getElementById('uploadSuccess');
+    const preview = document.getElementById('previewWrap');
+    const img     = document.getElementById('previewImg');
+
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        toast('error', 'File Too Large', 'Please upload an image under 5 MB.');
+        this.value = '';
+        return;
+    }
+
+    try {
+        uploadedImageB64 = await compressImage(file);
+
+        // Show preview
+        img.src = uploadedImageB64;
+        preview.classList.add('show');
+
+        zone.classList.add('has-file');
+        success.classList.add('show');
+        setHint('screenshotHint', 'Screenshot uploaded ✓', 'success');
+    } catch {
+        toast('error', 'Upload Error', 'Failed to process image. Try another file.');
+        this.value = '';
+    }
+});
+
+// Drag-and-drop visual
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop',      e => { e.preventDefault(); zone.classList.remove('dragover'); });
+
+// ─── Live field validation ────────────────────
+document.getElementById('fullName').addEventListener('input', function () {
+    if (this.value.trim().length >= 3) {
+        setHint('nameHint', '', '');
+    }
+});
+
+document.getElementById('depositAmount').addEventListener('input', function () {
+    const v = parseFloat(this.value);
+    if (!this.value) {
+        setHint('amountHint', 'Minimum deposit: $10.00', '');
+        return;
+    }
+    if (v < 10) {
+        setHint('amountHint', 'Minimum deposit is $10.00', 'error');
+    } else {
+        setHint('amountHint', `$${v.toFixed(2)} will be credited after confirmation.`, 'success');
+    }
+});
+
+// ─── Submit ───────────────────────────────────
+window.submitDeposit = async function () {
+    if (!currentUser || !userData) return;
+
+    const name   = document.getElementById('fullName').value.trim();
+    const amount = parseFloat(document.getElementById('depositAmount').value);
+    const btn    = document.getElementById('submitBtn');
+
+    // Validate name
+    if (!name || name.length < 3) {
+        setHint('nameHint', 'Please enter your full name.', 'error');
+        document.getElementById('fullName').focus();
+        return;
+    }
+
+    // Validate amount
+    if (!amount || isNaN(amount) || amount < 10) {
+        setHint('amountHint', 'Minimum deposit is $10.00', 'error');
+        document.getElementById('depositAmount').focus();
+        return;
+    }
+
+    // Validate screenshot
+    if (!uploadedImageB64) {
+        setHint('screenshotHint', 'Please upload your payment screenshot.', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+        await addDoc(collection(db, 'deposits'), {
+            uid: currentUser.uid,
+            username: userData.username || '',
+            email: userData.email || '',
+            fullName: name,
+            amount,
+            paymentScreenshot: uploadedImageB64,
+            status: 'pending',
+            createdAt: serverTimestamp(),
+            processedAt: null,
+            adminNote: ''
+        });
+
+        toast('success', 'Request Submitted', `Your $${amount.toFixed(2)} deposit is under review. We'll credit your wallet shortly.`, 7000);
+
+        // Reset
+        document.getElementById('fullName').value        = '';
+        document.getElementById('depositAmount').value   = '';
+        document.getElementById('screenshotInput').value = '';
+        uploadedImageB64 = null;
+
+        document.getElementById('uploadZone').classList.remove('has-file');
+        document.getElementById('uploadSuccess').classList.remove('show');
+        document.getElementById('previewWrap').classList.remove('show');
+        document.getElementById('previewImg').src = '';
+
+        setHint('nameHint', '', '');
+        setHint('amountHint', 'Minimum deposit: $10.00', '');
+        setHint('screenshotHint', '', '');
+
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Submission Failed', 'Something went wrong. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Deposit Request';
+    }
+};
+
+// ─── Load user ────────────────────────────────
+async function loadUser() {
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if (snap.exists()) {
+        userData = snap.data();
+        document.getElementById('depositBalance').textContent =
+            (userData.depositWallet || 0).toFixed(2);
+    }
+}
+
+// ─── Auth ─────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+    if (user) {
+        currentUser = user;
+        await loadUser();
+    } else {
+        location.href = 'login.html';
+    }
+});
+</script>
+</body>
+</html>
