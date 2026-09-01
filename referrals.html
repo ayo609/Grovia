@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referrals - Grovia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0c1220;
+            --bg-secondary: #111927;
+            --bg-card: #162030;
+            --bg-elevated: #1c2a3a;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-gold: #ffc107;
+            --accent-purple: #7c3aed;
+            --accent-red: #ff5252;
+            --text-primary: #eef2f7;
+            --text-secondary: #8fa3b8;
+            --text-muted: #506070;
+            --border: rgba(255,255,255,0.07);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 10% 20%, rgba(124,58,237,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 80%, rgba(0,230,118,0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(12,18,32,0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-mark {
+            width: 36px; height: 36px; border-radius: 9px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            display: grid; place-items: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 1.1rem;
+            color: #0c1220;
+        }
+        .logo-name {
+            font-family: var(--font-display); font-size: 1.15rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .user-pill {
+            display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 40px;
+        }
+        .user-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            display: grid; place-items: center; font-weight: 700; font-size: 0.8rem;
+            color: #0c1220;
+        }
+        .user-name { font-size: 0.85rem; font-weight: 600; }
+        .logout-btn {
+            padding: 6px 16px; border-radius: 40px; border: 1px solid rgba(255,82,82,0.4);
+            background: transparent; color: var(--accent-red); font-family: var(--font-body);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+        }
+        .logout-btn:hover { background: rgba(255,82,82,0.1); }
+
+        .main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 24px 16px 0; }
+
+        .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .section-title { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; }
+
+        /* Total Team Investments */
+        .total-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .total-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-gold));
+        }
+        .total-label {
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 1px;
+            color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;
+        }
+        .total-amount { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--accent-green); }
+        .total-stats { display: flex; justify-content: center; gap: 25px; margin-top: 12px; }
+        .stat-item { text-align: center; }
+        .stat-value { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--accent-blue); }
+        .stat-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Referral Link */
+        .link-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px;
+        }
+        .link-label {
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 1px;
+            color: var(--accent-purple); text-transform: uppercase; margin-bottom: 10px;
+        }
+        .link-display {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px;
+            font-family: 'DM Mono', monospace; font-size: 0.75rem;
+            color: var(--text-secondary); word-break: break-all; margin-bottom: 10px;
+        }
+        .link-actions { display: flex; gap: 8px; }
+        .copy-btn, .share-btn {
+            flex: 1; padding: 10px; border: none; border-radius: var(--radius-sm);
+            font-family: var(--font-body); font-weight: 600; cursor: pointer;
+            transition: var(--transition); font-size: 0.8rem;
+        }
+        .copy-btn { background: var(--accent-purple); color: white; }
+        .copy-btn:hover { opacity: 0.85; }
+        .share-btn { background: var(--accent-blue); color: #0c1220; }
+        .share-btn:hover { opacity: 0.85; }
+
+        /* Level Tabs */
+        .level-tabs {
+            display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .level-tabs::-webkit-scrollbar { display: none; }
+        .level-tab {
+            padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 25px; color: var(--text-secondary); cursor: pointer;
+            white-space: nowrap; transition: var(--transition);
+            font-family: var(--font-body); font-size: 0.78rem; font-weight: 600;
+        }
+        .level-tab:hover { border-color: var(--accent-purple); color: var(--text-primary); }
+        .level-tab.active {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: white; border-color: transparent;
+        }
+
+        /* Team Members List */
+        .team-list {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 20px;
+        }
+        .team-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px; border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .team-item:last-child { border-bottom: none; }
+        .team-item:hover { background: var(--bg-elevated); }
+        .team-user { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .team-avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            display: grid; place-items: center; font-weight: 700; color: white; font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .team-info { flex: 1; }
+        .team-name { font-weight: 600; font-size: 0.85rem; }
+        .team-date { font-size: 0.7rem; color: var(--text-muted); }
+        .team-investment { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; color: var(--accent-green); }
+        .team-plan { font-size: 0.7rem; color: var(--text-muted); }
+        .team-bonus { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; color: var(--accent-gold); text-align: right; }
+        .team-bonus-label { font-size: 0.65rem; color: var(--text-muted); }
+
+        .empty-state {
+            text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.85rem;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+            background: rgba(12,18,32,0.95); backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border); display: flex; align-items: center;
+            justify-content: space-around; z-index: 200;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px; background: none;
+            border: none; color: var(--text-muted); cursor: pointer; transition: var(--transition);
+            padding: 4px 20px; text-decoration: none; font-family: var(--font-body);
+        }
+        .nav-item:hover, .nav-item.active { color: var(--accent-green); }
+        .nav-item svg { width: 22px; height: 22px; }
+        .nav-label { font-size: 0.68rem; font-weight: 600; }
+
+        .toasts { position: fixed; bottom: 76px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 13px 16px; min-width: 260px; max-width: 340px; display: flex; gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before { background: var(--accent-red); }
+        .toast-icon { font-size: 1rem; flex-shrink: 0; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); }
+
+        @media (max-width: 600px) {
+            .main { padding: 16px 12px 0; }
+            .logo-name { display: none; }
+            .total-stats { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <div class="logo-mark">G</div>
+        <div class="logo-name">Grovia</div>
+    </div>
+    <div class="header-right">
+        <div class="user-pill">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">User</span>
+        </div>
+        <button class="logout-btn" onclick="location.href='login.html'">Logout</button>
+    </div>
+</header>
+
+<main class="main">
+    <!-- Total Team Investments -->
+    <div class="total-card">
+        <div class="total-label">Total Team Investments</div>
+        <div class="total-amount">$<span id="totalTeamInvestments">0.00</span></div>
+        <div class="total-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="level1Count">0</div>
+                <div class="stat-label">Level 1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="level2Count">0</div>
+                <div class="stat-label">Level 2</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="level3Count">0</div>
+                <div class="stat-label">Level 3</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referral Link -->
+    <div class="link-card">
+        <div class="link-label">Your Referral Link</div>
+        <div class="link-display" id="referralLink">Loading...</div>
+        <div class="link-actions">
+            <button class="copy-btn" onclick="copyReferralLink()">Copy Link</button>
+            <button class="share-btn" onclick="shareReferralLink()">Share</button>
+        </div>
+    </div>
+
+    <!-- Level Tabs -->
+    <div class="level-tabs">
+        <button class="level-tab active" onclick="switchLevel(1, this)">Level 1 (10%)</button>
+        <button class="level-tab" onclick="switchLevel(2, this)">Level 2 (5%)</button>
+        <button class="level-tab" onclick="switchLevel(3, this)">Level 3 (3%)</button>
+    </div>
+
+    <!-- Team Members List -->
+    <div class="team-list" id="teamList">
+        <div class="empty-state">Loading team members...</div>
+    </div>
+</main>
+
+<nav class="bottom-nav">
+    <a href="dashboard.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="history.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="nav-label">History</span>
+    </a>
+    <a href="referrals.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">Referrals</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span class="nav-label">Profile</span>
+    </a>
+</nav>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let userData = null;
+let currentLevel = 1;
+let level1Members = [];
+let level2Members = [];
+let level3Members = [];
+
+function toast(type, title, msg) {
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-icon">${type === 'success' ? 'OK' : '!'}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 4000);
+}
+
+function generateReferralLink() {
+    if (!userData) return;
+    const domain = window.location.origin;
+    const referralCode = userData.referralCode || userData.uid?.substring(0, 8)?.toUpperCase();
+    const link = `${domain}/index.html?ref=${referralCode}`;
+    document.getElementById('referralLink').textContent = link;
+    return link;
+}
+
+window.copyReferralLink = function() {
+    const link = document.getElementById('referralLink').textContent;
+    navigator.clipboard.writeText(link).then(() => {
+        toast('success', 'Copied', 'Referral link copied.');
+    });
+};
+
+window.shareReferralLink = async function() {
+    const link = document.getElementById('referralLink').textContent;
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'Join Grovia', text: 'Join me on Grovia!', url: link });
+        } catch (e) {}
+    } else {
+        window.copyReferralLink();
+    }
+};
+
+window.switchLevel = function(level, element) {
+    currentLevel = level;
+    document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+    renderTeamList();
+};
+
+function formatDate(dateValue) {
+    if (!dateValue) return '—';
+    let date;
+    if (typeof dateValue.toDate === 'function') date = dateValue.toDate();
+    else if (dateValue instanceof Date) date = dateValue;
+    else if (typeof dateValue === 'string') date = new Date(dateValue);
+    else return '—';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function renderTeamList() {
+    const list = document.getElementById('teamList');
+    let members = [];
+    if (currentLevel === 1) members = level1Members;
+    else if (currentLevel === 2) members = level2Members;
+    else members = level3Members;
+    
+    if (members.length === 0) {
+        list.innerHTML = '<div class="empty-state">No members in this level yet</div>';
+        return;
+    }
+    
+    let html = '';
+    members.forEach(m => {
+        html += `
+            <div class="team-item">
+                <div class="team-user">
+                    <div class="team-avatar">${m.username?.charAt(0)?.toUpperCase() || 'U'}</div>
+                    <div class="team-info">
+                        <div class="team-name">${m.username || 'Unknown'}</div>
+                        <div class="team-date">Joined: ${m.registeredDate}</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="team-investment">$${m.totalInvested.toFixed(2)}</div>
+                    <div class="team-plan">${m.planName || 'No plan yet'}</div>
+                </div>
+                <div style="text-align: right; margin-left: 12px;">
+                    <div class="team-bonus">+$${m.bonusEarned.toFixed(2)}</div>
+                    <div class="team-bonus-label">Bonus</div>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+
+async function loadReferralData() {
+    if (!currentUser || !userData) return;
+    
+    try {
+        level1Members = [];
+        level2Members = [];
+        level3Members = [];
+        let totalInvestments = 0;
+        
+        // Load Level 1 (direct referrals)
+        const l1Query = query(collection(db, 'users'), where('referredBy', '==', currentUser.uid));
+        const l1Snap = await getDocs(l1Query);
+        
+        for (const l1Doc of l1Snap.docs) {
+            const l1Data = l1Doc.data();
+            
+            // Get Level 1 member's plans
+            const l1PlansQuery = query(collection(db, 'plans'), where('uid', '==', l1Doc.id));
+            const l1PlansSnap = await getDocs(l1PlansQuery);
+            let l1Invested = 0;
+            let l1PlanName = 'No plan';
+            l1PlansSnap.forEach(p => {
+                l1Invested += p.data().amount || 0;
+                l1PlanName = p.data().planName || 'No plan';
+            });
+            totalInvestments += l1Invested;
+            
+            // Get Level 1 bonus
+            const l1BonusQuery = query(collection(db, 'referralBonuses'), where('referrerUid', '==', currentUser.uid), where('uid', '==', l1Doc.id));
+            const l1BonusSnap = await getDocs(l1BonusQuery);
+            let l1Bonus = 0;
+            l1BonusSnap.forEach(b => l1Bonus += b.data().amount || 0);
+            
+            level1Members.push({
+                username: l1Data.username,
+                registeredDate: formatDate(l1Data.createdAt),
+                totalInvested: l1Invested,
+                planName: l1PlanName,
+                bonusEarned: l1Bonus
+            });
+            
+            // Load Level 2
+            const l2Query = query(collection(db, 'users'), where('referredBy', '==', l1Doc.id));
+            const l2Snap = await getDocs(l2Query);
+            
+            for (const l2Doc of l2Snap.docs) {
+                const l2Data = l2Doc.data();
+                
+                const l2PlansQuery = query(collection(db, 'plans'), where('uid', '==', l2Doc.id));
+                const l2PlansSnap = await getDocs(l2PlansQuery);
+                let l2Invested = 0;
+                let l2PlanName = 'No plan';
+                l2PlansSnap.forEach(p => {
+                    l2Invested += p.data().amount || 0;
+                    l2PlanName = p.data().planName || 'No plan';
+                });
+                totalInvestments += l2Invested;
+                
+                const l2BonusQuery = query(collection(db, 'referralBonuses'), where('referrerUid', '==', currentUser.uid), where('uid', '==', l2Doc.id));
+                const l2BonusSnap = await getDocs(l2BonusQuery);
+                let l2Bonus = 0;
+                l2BonusSnap.forEach(b => l2Bonus += b.data().amount || 0);
+                
+                level2Members.push({
+                    username: l2Data.username,
+                    registeredDate: formatDate(l2Data.createdAt),
+                    totalInvested: l2Invested,
+                    planName: l2PlanName,
+                    bonusEarned: l2Bonus
+                });
+                
+                // Load Level 3
+                const l3Query = query(collection(db, 'users'), where('referredBy', '==', l2Doc.id));
+                const l3Snap = await getDocs(l3Query);
+                
+                for (const l3Doc of l3Snap.docs) {
+                    const l3Data = l3Doc.data();
+                    
+                    const l3PlansQuery = query(collection(db, 'plans'), where('uid', '==', l3Doc.id));
+                    const l3PlansSnap = await getDocs(l3PlansQuery);
+                    let l3Invested = 0;
+                    let l3PlanName = 'No plan';
+                    l3PlansSnap.forEach(p => {
+                        l3Invested += p.data().amount || 0;
+                        l3PlanName = p.data().planName || 'No plan';
+                    });
+                    totalInvestments += l3Invested;
+                    
+                    const l3BonusQuery = query(collection(db, 'referralBonuses'), where('referrerUid', '==', currentUser.uid), where('uid', '==', l3Doc.id));
+                    const l3BonusSnap = await getDocs(l3BonusQuery);
+                    let l3Bonus = 0;
+                    l3BonusSnap.forEach(b => l3Bonus += b.data().amount || 0);
+                    
+                    level3Members.push({
+                        username: l3Data.username,
+                        registeredDate: formatDate(l3Data.createdAt),
+                        totalInvested: l3Invested,
+                        planName: l3PlanName,
+                        bonusEarned: l3Bonus
+                    });
+                }
+            }
+        }
+        
+        // Update UI
+        document.getElementById('totalTeamInvestments').textContent = totalInvestments.toFixed(2);
+        document.getElementById('level1Count').textContent = level1Members.length;
+        document.getElementById('level2Count').textContent = level2Members.length;
+        document.getElementById('level3Count').textContent = level3Members.length;
+        
+        renderTeamList();
+        
+    } catch (error) {
+        console.error('Error loading referral data:', error);
+    }
+}
+
+async function loadUserData() {
+    if (!currentUser) return;
+    try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+            userData = userDoc.data();
+            document.getElementById('userName').textContent = userData.username;
+            document.getElementById('userAvatar').textContent = userData.username.charAt(0).toUpperCase();
+            generateReferralLink();
+            await loadReferralData();
+        }
+    } catch (e) { console.error(e); }
+}
+
+onAuthStateChanged(auth, user => {
+    if (user) {
+        currentUser = user;
+        loadUserData();
+    } else {
+        location.href = 'login.html';
+    }
+});
+</script>
+</body>
+</html>
