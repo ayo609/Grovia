@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal Requests - Grovia Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-elevated: #22222e;
+            --accent-red: #ff4444;
+            --accent-red-dark: #cc0000;
+            --accent-gold: #ffd700;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --border: rgba(255,255,255,0.08);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 50% 40% at 10% 10%, rgba(255,215,0,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 90%, rgba(255,68,68,0.03) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-mark {
+            width: 36px; height: 36px; border-radius: 9px;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+            display: grid; place-items: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: white;
+        }
+        .logo-name {
+            font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .admin-email { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+        .logout-btn {
+            padding: 6px 16px; border-radius: 40px; border: 1px solid rgba(255,68,68,0.4);
+            background: transparent; color: var(--accent-red); font-family: var(--font-body);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+        }
+        .logout-btn:hover { background: rgba(255,68,68,0.1); }
+
+        .main { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 24px 16px 0; }
+
+        /* Summary Stats */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px; text-align: center;
+        }
+        .stat-label {
+            font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        .stat-value { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
+        .stat-value.pending { color: var(--accent-gold); }
+        .stat-value.approved { color: var(--accent-green); }
+        .stat-value.rejected { color: var(--accent-red); }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab {
+            padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 25px; color: var(--text-secondary); cursor: pointer;
+            white-space: nowrap; transition: var(--transition);
+            font-family: var(--font-body); font-size: 0.78rem; font-weight: 600;
+        }
+        .filter-tab:hover { border-color: var(--accent-gold); }
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            color: #0a0a0f; border-color: transparent;
+        }
+
+        /* Withdrawal Cards */
+        .withdrawals-list { display: flex; flex-direction: column; gap: 12px; }
+        .withdrawal-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 16px; transition: var(--transition);
+        }
+        .withdrawal-card:hover { border-color: var(--accent-gold); }
+        .withdrawal-card.pending { border-left: 3px solid var(--accent-gold); }
+        .withdrawal-card.approved { border-left: 3px solid var(--accent-green); }
+        .withdrawal-card.rejected { border-left: 3px solid var(--accent-red); }
+
+        .withdrawal-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 10px; flex-wrap: wrap; gap: 8px;
+        }
+        .withdrawal-user { display: flex; align-items: center; gap: 10px; }
+        .withdrawal-avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            display: grid; place-items: center; font-weight: 700; font-size: 0.85rem;
+            color: #0a0a0f; flex-shrink: 0;
+        }
+        .withdrawal-info { flex: 1; }
+        .withdrawal-name { font-weight: 600; font-size: 0.85rem; }
+        .withdrawal-email { font-size: 0.7rem; color: var(--text-muted); }
+        .withdrawal-amount {
+            font-family: var(--font-display); font-weight: 700; font-size: 1.1rem;
+            color: var(--accent-gold);
+        }
+        .withdrawal-status {
+            padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 600;
+        }
+        .withdrawal-status.pending { background: rgba(255,193,7,0.15); color: var(--accent-gold); }
+        .withdrawal-status.approved { background: rgba(0,230,118,0.15); color: var(--accent-green); }
+        .withdrawal-status.rejected { background: rgba(255,68,68,0.15); color: var(--accent-red); }
+
+        .withdrawal-address {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 10px 12px;
+            font-family: 'Courier New', monospace; font-size: 0.75rem;
+            color: var(--accent-blue); word-break: break-all; margin: 8px 0;
+        }
+        .withdrawal-network {
+            display: inline-block; font-size: 0.65rem; font-weight: 700;
+            color: var(--accent-blue); background: rgba(41,182,246,0.1);
+            border: 1px solid rgba(41,182,246,0.2);
+            padding: 2px 8px; border-radius: 20px; margin-top: 4px;
+        }
+        .withdrawal-time { font-size: 0.7rem; color: var(--text-muted); }
+        .withdrawal-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .action-btn {
+            padding: 7px 14px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;
+            cursor: pointer; border: none; transition: var(--transition); font-family: var(--font-body);
+        }
+        .view-btn { background: rgba(41,182,246,0.15); color: var(--accent-blue); border: 1px solid rgba(41,182,246,0.3); }
+        .view-btn:hover { background: var(--accent-blue); color: white; }
+        .approve-btn { background: rgba(0,230,118,0.15); color: var(--accent-green); border: 1px solid rgba(0,230,118,0.3); }
+        .approve-btn:hover { background: var(--accent-green); color: #0a0a0f; }
+        .reject-btn { background: rgba(255,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(255,68,68,0.3); }
+        .reject-btn:hover { background: var(--accent-red); color: white; }
+
+        .empty-state {
+            text-align: center; padding: 40px; background: var(--bg-card);
+            border-radius: var(--radius-md); border: 1px solid var(--border);
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+            background: rgba(10,10,15,0.95); backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border); display: flex; align-items: center;
+            justify-content: space-around; z-index: 200;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px; background: none;
+            border: none; color: var(--text-muted); cursor: pointer; transition: var(--transition);
+            padding: 4px 15px; text-decoration: none; font-family: var(--font-body);
+        }
+        .nav-item:hover, .nav-item.active { color: var(--accent-red); }
+        .nav-item svg { width: 22px; height: 22px; }
+        .nav-label { font-size: 0.65rem; font-weight: 600; }
+
+        /* Modals */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+            z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 25px; width: 100%; max-width: 450px; position: relative;
+            animation: fadeUp 0.25s ease; max-height: 90vh; overflow-y: auto;
+        }
+        @keyframes fadeUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-close {
+            position: absolute; top: 14px; right: 14px; background: none; border: none;
+            color: var(--text-muted); font-size: 1.3rem; cursor: pointer;
+        }
+        .modal-title {
+            font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+            margin-bottom: 15px; color: var(--accent-gold);
+        }
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 8px 0;
+            border-bottom: 1px solid var(--border); font-size: 0.82rem;
+            flex-wrap: wrap; gap: 5px;
+        }
+        .detail-label { color: var(--text-muted); }
+        .detail-value { font-weight: 600; word-break: break-all; text-align: right; max-width: 60%; }
+        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-modal {
+            padding: 11px; border-radius: var(--radius-sm); font-family: var(--font-body);
+            font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; transition: var(--transition);
+        }
+        .btn-modal.cancel { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-modal.approve { background: var(--accent-green); color: #0a0a0f; }
+        .btn-modal.approve:hover { opacity: 0.85; }
+        .btn-modal.reject { background: rgba(255,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(255,68,68,0.3); }
+        .btn-modal.reject:hover { background: var(--accent-red); color: white; }
+
+        .toasts { position: fixed; bottom: 76px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 13px 16px; min-width: 280px; max-width: 360px; display: flex; gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before { background: var(--accent-red); }
+        .toast-icon { font-size: 1rem; flex-shrink: 0; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); }
+
+        @media (max-width: 600px) {
+            .main { padding: 16px 12px 0; }
+            .logo-name { display: none; }
+            .admin-email { display: none; }
+            .stats-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <div class="logo-mark">A</div>
+        <div class="logo-name">Admin Panel</div>
+    </div>
+    <div class="header-right">
+        <span class="admin-email" id="adminEmail">admin@grovia.com</span>
+        <button class="logout-btn" onclick="showLogout()">Logout</button>
+    </div>
+</header>
+
+<main class="main">
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value pending" id="statPending">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Approved</div>
+            <div class="stat-value approved" id="statApproved">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Rejected</div>
+            <div class="stat-value rejected" id="statRejected">0</div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterWithdrawals('pending', this)">Pending</button>
+        <button class="filter-tab" onclick="filterWithdrawals('approved', this)">Approved</button>
+        <button class="filter-tab" onclick="filterWithdrawals('rejected', this)">Rejected</button>
+        <button class="filter-tab" onclick="filterWithdrawals('all', this)">All</button>
+    </div>
+
+    <!-- Withdrawals List -->
+    <div class="withdrawals-list" id="withdrawalsList">
+        <div class="empty-state">Loading withdrawals...</div>
+    </div>
+</main>
+
+<nav class="bottom-nav">
+    <a href="admin-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="admin-users.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">Users</span>
+    </a>
+    <a href="admin-deposits.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h2m4 0h2m-8 4h6M5 10l1-7h12l1 7M5 10v10a2 2 0 002 2h10a2 2 0 002-2V10"/></svg>
+        <span class="nav-label">Deposits</span>
+    </a>
+    <a href="admin-withdrawals.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14h18M7 19h2m4 0h2m-8 4h6M5 14l-1-7h16l-1 7M5 14v-4a2 2 0 012-2h10a2 2 0 012 2v4"/></svg>
+        <span class="nav-label">Withdrawals</span>
+    </a>
+    <a href="admin-more.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span class="nav-label">More</span>
+    </a>
+</nav>
+
+<!-- Withdrawal Detail Modal -->
+<div class="overlay" id="detailOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeDetail()">×</button>
+        <div class="modal-title">Withdrawal Details</div>
+        <div id="detailContent"></div>
+        <div class="modal-btns" id="detailActions">
+            <button class="btn-modal reject" onclick="rejectFromModal()">Reject</button>
+            <button class="btn-modal approve" onclick="approveFromModal()">Approve</button>
+        </div>
+    </div>
+</div>
+
+<!-- Logout Modal -->
+<div class="overlay" id="logoutOverlay">
+    <div class="modal">
+        <div class="modal-title" style="color: var(--accent-red);">Confirm Logout</div>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 15px;">Are you sure you want to logout?</p>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closeLogout()">Cancel</button>
+            <button class="btn-modal reject" onclick="doLogout()">Logout</button>
+        </div>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let allWithdrawals = [];
+let currentFilter = 'pending';
+let currentWithdrawal = null;
+
+function toast(type, title, msg) {
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-icon">${type === 'success' ? 'OK' : '!'}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 4000);
+}
+
+window.showLogout = () => document.getElementById('logoutOverlay').classList.add('show');
+window.closeLogout = () => document.getElementById('logoutOverlay').classList.remove('show');
+window.doLogout = async () => {
+    sessionStorage.removeItem('grovia_admin');
+    await signOut(auth);
+    location.href = 'admin-login.html';
+};
+
+window.filterWithdrawals = function(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderWithdrawals();
+};
+
+function formatDate(dateValue) {
+    if (!dateValue) return '—';
+    let date;
+    if (typeof dateValue.toDate === 'function') date = dateValue.toDate();
+    else if (dateValue instanceof Date) date = dateValue;
+    else return '—';
+    return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderWithdrawals() {
+    const list = document.getElementById('withdrawalsList');
+    const filtered = allWithdrawals.filter(w => currentFilter === 'all' || w.status === currentFilter);
+    
+    // Update stats
+    const pending = allWithdrawals.filter(w => w.status === 'pending').length;
+    const approved = allWithdrawals.filter(w => w.status === 'approved').length;
+    const rejected = allWithdrawals.filter(w => w.status === 'rejected').length;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statApproved').textContent = approved;
+    document.getElementById('statRejected').textContent = rejected;
+    
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state">No ${currentFilter} withdrawals found</div>`;
+        return;
+    }
+    
+    list.innerHTML = '';
+    filtered.forEach(withdrawal => {
+        const card = document.createElement('div');
+        card.className = `withdrawal-card ${withdrawal.status}`;
+        card.innerHTML = `
+            <div class="withdrawal-header">
+                <div class="withdrawal-user">
+                    <div class="withdrawal-avatar">${(withdrawal.username || 'U').charAt(0).toUpperCase()}</div>
+                    <div class="withdrawal-info">
+                        <div class="withdrawal-name">${withdrawal.username || 'Unknown'}</div>
+                        <div class="withdrawal-email">${withdrawal.email || ''}</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="withdrawal-amount">$${(withdrawal.amount || 0).toFixed(2)}</div>
+                    <span class="withdrawal-status ${withdrawal.status}">${withdrawal.status}</span>
+                </div>
+            </div>
+            <div class="withdrawal-address">${withdrawal.walletAddress || 'No address provided'}</div>
+            <span class="withdrawal-network">BEP20 (BSC)</span>
+            <div class="withdrawal-time" style="margin-top: 6px;">Requested: ${formatDate(withdrawal.createdAt)}</div>
+            <div class="withdrawal-actions">
+                <button class="action-btn view-btn" onclick="viewWithdrawal('${withdrawal.id}')">View Details</button>
+                ${withdrawal.status === 'pending' ? `
+                    <button class="action-btn approve-btn" onclick="approveWithdrawal('${withdrawal.id}')">Approve</button>
+                    <button class="action-btn reject-btn" onclick="rejectWithdrawal('${withdrawal.id}')">Reject</button>
+                ` : ''}
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+window.viewWithdrawal = function(id) {
+    currentWithdrawal = allWithdrawals.find(w => w.id === id);
+    if (!currentWithdrawal) return;
+    
+    document.getElementById('detailContent').innerHTML = `
+        <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">${currentWithdrawal.username}</span></div>
+        <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${currentWithdrawal.email}</span></div>
+        <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">$${currentWithdrawal.amount.toFixed(2)}</span></div>
+        <div class="detail-row"><span class="detail-label">Network</span><span class="detail-value">BEP20 (BSC)</span></div>
+        <div class="detail-row"><span class="detail-label">Wallet Address</span><span class="detail-value">${currentWithdrawal.walletAddress}</span></div>
+        <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">${currentWithdrawal.status}</span></div>
+        <div class="detail-row"><span class="detail-label">Requested</span><span class="detail-value">${formatDate(currentWithdrawal.createdAt)}</span></div>
+        ${currentWithdrawal.processedAt ? `<div class="detail-row"><span class="detail-label">Processed</span><span class="detail-value">${formatDate(currentWithdrawal.processedAt)}</span></div>` : ''}
+    `;
+    
+    document.getElementById('detailActions').style.display = currentWithdrawal.status === 'pending' ? 'grid' : 'none';
+    document.getElementById('detailOverlay').classList.add('show');
+};
+
+window.closeDetail = () => {
+    document.getElementById('detailOverlay').classList.remove('show');
+    currentWithdrawal = null;
+};
+
+window.approveFromModal = async () => {
+    if (currentWithdrawal) await approveWithdrawal(currentWithdrawal.id);
+};
+
+window.rejectFromModal = async () => {
+    if (currentWithdrawal) await rejectWithdrawal(currentWithdrawal.id);
+};
+
+window.approveWithdrawal = async function(id) {
+    const withdrawal = allWithdrawals.find(w => w.id === id);
+    if (!withdrawal) return;
+    
+    if (!confirm(`Approve $${withdrawal.amount.toFixed(2)} withdrawal to ${withdrawal.username}?\n\nWallet: ${withdrawal.walletAddress}`)) return;
+    
+    try {
+        await updateDoc(doc(db, 'withdrawals', id), {
+            status: 'approved',
+            processedAt: serverTimestamp(),
+            adminNote: 'Approved'
+        });
+        
+        // Add transaction record
+        await addDoc(collection(db, 'transactions'), {
+            uid: withdrawal.uid,
+            type: 'withdrawal',
+            amount: withdrawal.amount,
+            status: 'completed',
+            createdAt: serverTimestamp()
+        });
+        
+        closeDetail();
+        toast('success', 'Withdrawal Approved', `$${withdrawal.amount.toFixed(2)} approved for ${withdrawal.username}.`);
+        loadWithdrawals();
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Failed', 'Error approving withdrawal.');
+    }
+};
+
+window.rejectWithdrawal = async function(id) {
+    const withdrawal = allWithdrawals.find(w => w.id === id);
+    if (!withdrawal) return;
+    
+    if (!confirm(`Reject withdrawal from ${withdrawal.username}?`)) return;
+    
+    try {
+        await updateDoc(doc(db, 'withdrawals', id), {
+            status: 'rejected',
+            processedAt: serverTimestamp(),
+            adminNote: 'Rejected'
+        });
+        
+        // Refund user's withdrawal wallet
+        const userRef = doc(db, 'users', withdrawal.uid);
+        await updateDoc(userRef, {
+            withdrawalWallet: increment(withdrawal.amount)
+        });
+        
+        closeDetail();
+        toast('success', 'Withdrawal Rejected', `$${withdrawal.amount.toFixed(2)} refunded to ${withdrawal.username}.`);
+        loadWithdrawals();
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Failed', 'Error rejecting withdrawal.');
+    }
+};
+
+async function loadWithdrawals() {
+    try {
+        const snapshot = await getDocs(collection(db, 'withdrawals'));
+        allWithdrawals = [];
+        snapshot.forEach(doc => {
+            allWithdrawals.push({ id: doc.id, ...doc.data() });
+        });
+        
+        allWithdrawals.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(0);
+            return dateB - dateA;
+        });
+        
+        renderWithdrawals();
+    } catch (e) {
+        console.error(e);
+        document.getElementById('withdrawalsList').innerHTML = '<div class="empty-state">Error loading withdrawals</div>';
+    }
+}
+
+onAuthStateChanged(auth, (user) => {
+    if (user && sessionStorage.getItem('grovia_admin') === 'true') {
+        document.getElementById('adminEmail').textContent = user.email;
+        loadWithdrawals();
+    } else {
+        location.href = 'admin-login.html';
+    }
+});
+</script>
+</body>
+</html>
