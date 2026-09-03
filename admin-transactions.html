@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - Grovia Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-elevated: #22222e;
+            --accent-red: #ff4444;
+            --accent-gold: #ffd700;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-purple: #7c3aed;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --border: rgba(255,255,255,0.08);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 50% 40% at 10% 10%, rgba(41,182,246,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 90%, rgba(124,58,237,0.03) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-mark {
+            width: 36px; height: 36px; border-radius: 9px;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+            display: grid; place-items: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: white;
+        }
+        .logo-name {
+            font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .admin-email { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+        .logout-btn {
+            padding: 6px 16px; border-radius: 40px; border: 1px solid rgba(255,68,68,0.4);
+            background: transparent; color: var(--accent-red); font-family: var(--font-body);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+        }
+        .logout-btn:hover { background: rgba(255,68,68,0.1); }
+
+        .main { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 24px 16px 0; }
+
+        /* Search */
+        .search-wrapper { position: relative; margin-bottom: 20px; }
+        .search-input {
+            width: 100%; padding: 12px 16px 12px 40px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text-primary);
+            font-family: var(--font-body); font-size: 0.85rem; outline: none;
+            transition: var(--transition);
+        }
+        .search-input:focus { border-color: var(--accent-blue); }
+        .search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 1rem;
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab {
+            padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 25px; color: var(--text-secondary); cursor: pointer;
+            white-space: nowrap; transition: var(--transition);
+            font-family: var(--font-body); font-size: 0.78rem; font-weight: 600;
+        }
+        .filter-tab:hover { border-color: var(--accent-blue); }
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white; border-color: transparent;
+        }
+
+        /* Transactions List */
+        .transactions-list { display: flex; flex-direction: column; gap: 10px; }
+        .transaction-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 14px 16px; transition: var(--transition);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .transaction-card:hover { border-color: var(--accent-blue); }
+        .transaction-card.deposit { border-left: 3px solid var(--accent-green); }
+        .transaction-card.withdrawal { border-left: 3px solid var(--accent-gold); }
+        .transaction-card.investment { border-left: 3px solid var(--accent-blue); }
+        .transaction-card.referral { border-left: 3px solid var(--accent-purple); }
+
+        .transaction-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 150px; }
+        .transaction-icon {
+            width: 35px; height: 35px; border-radius: 8px; display: flex;
+            align-items: center; justify-content: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .deposit .transaction-icon { background: rgba(0,230,118,0.15); color: var(--accent-green); }
+        .withdrawal .transaction-icon { background: rgba(255,193,7,0.15); color: var(--accent-gold); }
+        .investment .transaction-icon { background: rgba(41,182,246,0.15); color: var(--accent-blue); }
+        .referral .transaction-icon { background: rgba(124,58,237,0.15); color: var(--accent-purple); }
+        .transaction-info { flex: 1; }
+        .transaction-user { font-weight: 600; font-size: 0.82rem; }
+        .transaction-type { font-size: 0.7rem; color: var(--text-muted); text-transform: capitalize; }
+        .transaction-amount {
+            font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
+        }
+        .transaction-amount.positive { color: var(--accent-green); }
+        .transaction-amount.negative { color: var(--accent-red); }
+        .transaction-time { font-size: 0.7rem; color: var(--text-muted); text-align: right; }
+
+        .empty-state {
+            text-align: center; padding: 40px; background: var(--bg-card);
+            border-radius: var(--radius-md); border: 1px solid var(--border);
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+
+        .load-more { text-align: center; margin-top: 20px; }
+        .load-more-btn {
+            padding: 10px 25px; background: transparent; border: 2px solid var(--accent-blue);
+            color: var(--accent-blue); border-radius: 25px; cursor: pointer;
+            font-family: var(--font-body); font-weight: 600; transition: var(--transition);
+        }
+        .load-more-btn:hover { background: var(--accent-blue); color: white; }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+            background: rgba(10,10,15,0.95); backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border); display: flex; align-items: center;
+            justify-content: space-around; z-index: 200;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px; background: none;
+            border: none; color: var(--text-muted); cursor: pointer; transition: var(--transition);
+            padding: 4px 15px; text-decoration: none; font-family: var(--font-body);
+        }
+        .nav-item:hover, .nav-item.active { color: var(--accent-red); }
+        .nav-item svg { width: 22px; height: 22px; }
+        .nav-label { font-size: 0.65rem; font-weight: 600; }
+
+        /* Logout Modal */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+            z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 25px; width: 100%; max-width: 400px; position: relative;
+            animation: fadeUp 0.25s ease;
+        }
+        @keyframes fadeUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-title {
+            font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+            margin-bottom: 12px; color: var(--accent-red);
+        }
+        .modal-text { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px; }
+        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-modal {
+            padding: 11px; border-radius: var(--radius-sm); font-family: var(--font-body);
+            font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; transition: var(--transition);
+        }
+        .btn-modal.cancel { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-modal.danger { background: rgba(255,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(255,68,68,0.3); }
+        .btn-modal.danger:hover { background: var(--accent-red); color: white; }
+
+        .toasts { position: fixed; bottom: 76px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 13px 16px; min-width: 280px; max-width: 360px; display: flex; gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before { background: var(--accent-red); }
+        .toast-icon { font-size: 1rem; flex-shrink: 0; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); }
+
+        @media (max-width: 600px) {
+            .main { padding: 16px 12px 0; }
+            .logo-name { display: none; }
+            .admin-email { display: none; }
+            .transaction-time { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <div class="logo-mark">A</div>
+        <div class="logo-name">Admin Panel</div>
+    </div>
+    <div class="header-right">
+        <span class="admin-email" id="adminEmail">admin@grovia.com</span>
+        <button class="logout-btn" onclick="showLogout()">Logout</button>
+    </div>
+</header>
+
+<main class="main">
+    <!-- Search -->
+    <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by username..." oninput="searchTransactions()">
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterTransactions('all', this)">All</button>
+        <button class="filter-tab" onclick="filterTransactions('deposit', this)">Deposits</button>
+        <button class="filter-tab" onclick="filterTransactions('withdrawal', this)">Withdrawals</button>
+        <button class="filter-tab" onclick="filterTransactions('investment', this)">Investments</button>
+        <button class="filter-tab" onclick="filterTransactions('referral', this)">Referrals</button>
+    </div>
+
+    <!-- Transactions List -->
+    <div class="transactions-list" id="transactionsList">
+        <div class="empty-state">Loading transactions...</div>
+    </div>
+
+    <!-- Load More -->
+    <div class="load-more" id="loadMoreContainer" style="display: none;">
+        <button class="load-more-btn" onclick="loadMoreTransactions()">Load More</button>
+    </div>
+</main>
+
+<nav class="bottom-nav">
+    <a href="admin-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="admin-users.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">Users</span>
+    </a>
+    <a href="admin-deposits.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h2m4 0h2m-8 4h6M5 10l1-7h12l1 7M5 10v10a2 2 0 002 2h10a2 2 0 002-2V10"/></svg>
+        <span class="nav-label">Deposits</span>
+    </a>
+    <a href="admin-withdrawals.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14h18M7 19h2m4 0h2m-8 4h6M5 14l-1-7h16l-1 7M5 14v-4a2 2 0 012-2h10a2 2 0 012 2v4"/></svg>
+        <span class="nav-label">Withdrawals</span>
+    </a>
+    <a href="admin-transactions.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="nav-label">History</span>
+    </a>
+</nav>
+
+<!-- Logout Modal -->
+<div class="overlay" id="logoutOverlay">
+    <div class="modal">
+        <div class="modal-title">Confirm Logout</div>
+        <p class="modal-text">Are you sure you want to logout?</p>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closeLogout()">Cancel</button>
+            <button class="btn-modal danger" onclick="doLogout()">Logout</button>
+        </div>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let allTransactions = [];
+let currentFilter = 'all';
+let searchQuery = '';
+let visibleCount = 20;
+
+function toast(type, title, msg) {
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-icon">${type === 'success' ? 'OK' : '!'}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 4000);
+}
+
+window.showLogout = () => document.getElementById('logoutOverlay').classList.add('show');
+window.closeLogout = () => document.getElementById('logoutOverlay').classList.remove('show');
+window.doLogout = async () => {
+    sessionStorage.removeItem('grovia_admin');
+    await signOut(auth);
+    location.href = 'admin-login.html';
+};
+
+window.filterTransactions = function(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderTransactions();
+};
+
+window.searchTransactions = function() {
+    searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+    renderTransactions();
+};
+
+function formatDate(dateValue) {
+    if (!dateValue) return '—';
+    let date;
+    if (typeof dateValue.toDate === 'function') date = dateValue.toDate();
+    else if (dateValue instanceof Date) date = dateValue;
+    else return '—';
+    return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function getIcon(type) {
+    const icons = { deposit: 'D', withdrawal: 'W', investment: 'I', referral: 'R' };
+    return icons[type] || 'T';
+}
+
+function renderTransactions() {
+    const list = document.getElementById('transactionsList');
+    
+    const filtered = allTransactions.filter(tx => {
+        const matchesFilter = currentFilter === 'all' || tx.type === currentFilter;
+        const matchesSearch = !searchQuery || (tx.username || '').toLowerCase().includes(searchQuery);
+        return matchesFilter && matchesSearch;
+    });
+    
+    if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state">No transactions found</div>';
+        document.getElementById('loadMoreContainer').style.display = 'none';
+        return;
+    }
+    
+    const visible = filtered.slice(0, visibleCount);
+    list.innerHTML = '';
+    
+    visible.forEach(tx => {
+        const isPositive = tx.type === 'deposit' || tx.type === 'referral';
+        const card = document.createElement('div');
+        card.className = `transaction-card ${tx.type}`;
+        card.innerHTML = `
+            <div class="transaction-left">
+                <div class="transaction-icon">${getIcon(tx.type)}</div>
+                <div class="transaction-info">
+                    <div class="transaction-user">${tx.username || 'Unknown'}</div>
+                    <div class="transaction-type">${tx.type}</div>
+                </div>
+            </div>
+            <div class="transaction-amount ${isPositive ? 'positive' : 'negative'}">
+                ${isPositive ? '+' : '-'}$${(tx.amount || 0).toFixed(2)}
+            </div>
+            <div class="transaction-time">${formatDate(tx.createdAt)}</div>
+        `;
+        list.appendChild(card);
+    });
+    
+    document.getElementById('loadMoreContainer').style.display = filtered.length > visibleCount ? 'block' : 'none';
+}
+
+window.loadMoreTransactions = function() {
+    visibleCount += 20;
+    renderTransactions();
+};
+
+async function loadTransactions() {
+    try {
+        allTransactions = [];
+        
+        // Load deposits
+        const depositsSnap = await getDocs(collection(db, 'deposits'));
+        depositsSnap.forEach(doc => {
+            const data = doc.data();
+            allTransactions.push({
+                id: doc.id,
+                type: 'deposit',
+                username: data.username,
+                amount: data.amount,
+                status: data.status,
+                createdAt: data.createdAt
+            });
+        });
+        
+        // Load withdrawals
+        const withdrawalsSnap = await getDocs(collection(db, 'withdrawals'));
+        withdrawalsSnap.forEach(doc => {
+            const data = doc.data();
+            allTransactions.push({
+                id: doc.id,
+                type: 'withdrawal',
+                username: data.username,
+                amount: data.amount,
+                status: data.status,
+                createdAt: data.createdAt
+            });
+        });
+        
+        // Load plans (investments)
+        const plansSnap = await getDocs(collection(db, 'plans'));
+        plansSnap.forEach(doc => {
+            const data = doc.data();
+            allTransactions.push({
+                id: doc.id,
+                type: 'investment',
+                username: data.username || 'Unknown',
+                amount: data.amount,
+                status: data.status,
+                createdAt: data.createdAt
+            });
+        });
+        
+        // Load referral bonuses
+        const refSnap = await getDocs(collection(db, 'referralBonuses'));
+        refSnap.forEach(doc => {
+            const data = doc.data();
+            allTransactions.push({
+                id: doc.id,
+                type: 'referral',
+                username: data.username || 'Unknown',
+                amount: data.amount,
+                status: 'paid',
+                createdAt: data.createdAt
+            });
+        });
+        
+        // Sort by date
+        allTransactions.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(0);
+            return dateB - dateA;
+        });
+        
+        renderTransactions();
+    } catch (e) {
+        console.error(e);
+        document.getElementById('transactionsList').innerHTML = '<div class="empty-state">Error loading transactions</div>';
+    }
+}
+
+onAuthStateChanged(auth, (user) => {
+    if (user && sessionStorage.getItem('grovia_admin') === 'true') {
+        document.getElementById('adminEmail').textContent = user.email;
+        loadTransactions();
+    } else {
+        location.href = 'admin-login.html';
+    }
+});
+</script>
+</body>
+</html>
