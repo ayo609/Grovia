@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grovia — Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0c1220;
+            --bg-secondary: #111927;
+            --bg-card: #162030;
+            --bg-elevated: #1c2a3a;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-gold: #ffc107;
+            --accent-red: #ff5252;
+            --text-primary: #eef2f7;
+            --text-secondary: #8fa3b8;
+            --text-muted: #506070;
+            --border: rgba(255,255,255,0.07);
+            --border-hover: rgba(41,182,246,0.3);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* ── Subtle ambient glow ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 10% 20%, rgba(0,230,118,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 80%, rgba(41,182,246,0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Header ── */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(12,18,32,0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            display: grid;
+            place-items: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #0c1220;
+            flex-shrink: 0;
+        }
+
+        .logo-name {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px 5px 5px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #0c1220;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .logout-btn {
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(255,82,82,0.4);
+            background: transparent;
+            color: var(--accent-red);
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .logout-btn:hover {
+            background: rgba(255,82,82,0.1);
+            border-color: var(--accent-red);
+        }
+
+        /* ── Main ── */
+        .main {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px 0;
+        }
+
+        /* ── Wallet Row ── */
+        .wallet-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .wallet-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wallet-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .wallet-card.deposit::before { background: linear-gradient(90deg, var(--accent-green), var(--accent-blue)); }
+        .wallet-card.withdrawal::before { background: linear-gradient(90deg, var(--accent-gold), #ff9800); }
+
+        .wallet-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .wallet-amount {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 14px;
+        }
+
+        .wallet-card.deposit .wallet-amount { color: var(--accent-green); }
+        .wallet-card.withdrawal .wallet-amount { color: var(--accent-gold); }
+
+        .wallet-btn {
+            padding: 9px 22px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .wallet-card.deposit .wallet-btn {
+            background: rgba(0,230,118,0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(0,230,118,0.25);
+        }
+        .wallet-card.deposit .wallet-btn:hover {
+            background: var(--accent-green);
+            color: #0c1220;
+        }
+        .wallet-card.withdrawal .wallet-btn {
+            background: rgba(255,193,7,0.12);
+            color: var(--accent-gold);
+            border: 1px solid rgba(255,193,7,0.25);
+        }
+        .wallet-card.withdrawal .wallet-btn:hover {
+            background: var(--accent-gold);
+            color: #0c1220;
+        }
+
+        /* ── Section headers ── */
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--accent-green);
+            background: rgba(0,230,118,0.1);
+            border: 1px solid rgba(0,230,118,0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 1.4s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* ── Crypto Grid ── */
+        .crypto-section { margin-bottom: 32px; }
+
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+            gap: 12px;
+        }
+
+        .crypto-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .crypto-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+            transform: translateY(-2px);
+        }
+
+        .crypto-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .crypto-info {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .crypto-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: var(--bg-elevated);
+        }
+
+        .crypto-symbol {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .crypto-name-small {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        .change-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+        .change-pill.pos { background: rgba(0,230,118,0.12); color: var(--accent-green); }
+        .change-pill.neg { background: rgba(255,82,82,0.12); color: var(--accent-red); }
+
+        .crypto-price {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .crypto-rates-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .rate-box {
+            padding: 6px 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .rate-box.buy { background: rgba(0,230,118,0.06); }
+        .rate-box.sell { background: rgba(255,82,82,0.06); }
+
+        .rate-label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .rate-value {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .rate-value.buy { color: var(--accent-green); }
+        .rate-value.sell { color: var(--accent-red); }
+
+        /* Crypto skeleton */
+        .crypto-skeleton {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .skel {
+            background: linear-gradient(90deg, var(--bg-elevated) 25%, rgba(255,255,255,0.04) 50%, var(--bg-elevated) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Plans Grid ── */
+        .plans-section { margin-bottom: 32px; }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+            gap: 14px;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 16px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .plan-card:hover {
+            border-color: rgba(0,230,118,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+        }
+
+        .plan-card:hover::after { opacity: 1; }
+
+        .plan-tier {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent-gold);
+            background: rgba(255,193,7,0.1);
+            border: 1px solid rgba(255,193,7,0.2);
+            padding: 2px 9px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .plan-name {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .plan-price {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .plan-price span { font-size: 1rem; color: var(--text-muted); }
+
+        .plan-roi {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-green);
+            margin: 8px 0 4px;
+        }
+
+        .plan-duration {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .invest-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            color: #0c1220;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .invest-btn:hover {
+            opacity: 0.88;
+            box-shadow: 0 4px 16px rgba(0,230,118,0.25);
+        }
+
+        /* ── My Plans Table ── */
+        .myplans-section { margin-bottom: 32px; }
+
+        .table-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 540px;
+        }
+
+        thead tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 12px 16px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: left;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 13px 16px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        tbody tr:hover td { background: var(--bg-elevated); }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(0,230,118,0.12);
+            color: var(--accent-green);
+        }
+
+        .empty-row td {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 30px;
+            font-size: 0.85rem;
+        }
+        .btn-modal.confirm { background: var(--accent-green); color: #0c1220; }
+        .btn-modal.confirm:hover { opacity: 0.85; }
+        .countdown-text { font-family: var(--font-display); font-size:0.75rem; color: var(--accent-blue); font-weight:600; white-space:nowrap; }
+
+        /* ── Bottom Nav ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 64px;
+            background: rgba(12,18,32,0.95);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 200;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 4px 20px;
+            text-decoration: none;
+            font-family: var(--font-body);
+        }
+
+        .nav-item:hover, .nav-item.active { color: var(--accent-green); }
+
+        .nav-item svg { width: 22px; height: 22px; }
+
+        .nav-label { font-size: 0.68rem; font-weight: 600; }
+
+        /* ── Modals ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .overlay.show { display: flex; }
+
+        .modal {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            animation: fadeUp 0.25s ease;
+        }
+
+        @keyframes fadeUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 14px; right: 14px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: var(--transition);
+            line-height: 1;
+        }
+        .modal-close:hover { color: var(--text-primary); }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--accent-green);
+        }
+
+        .modal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
+        }
+        .modal-row:last-of-type { border-bottom: none; }
+        .modal-row strong { font-weight: 600; }
+
+        .telegram-btn {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, #0088cc, #00aaf0);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: var(--radius-sm);
+            margin-top: 18px;
+            transition: var(--transition);
+        }
+        .telegram-btn:hover { opacity: 0.88; }
+
+        .modal-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-modal {
+            padding: 11px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+        }
+        .btn-modal.cancel {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-modal.cancel:hover { background: var(--bg-elevated); }
+        .btn-modal.danger {
+            background: rgba(255,82,82,0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(255,82,82,0.3);
+        }
+        .btn-modal.danger:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        /* ── Toast ── */
+        .toasts {
+            position: fixed;
+            bottom: 76px; right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 13px 16px;
+            min-width: 260px;
+            max-width: 340px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .toast.show { transform: translateX(0); }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before { background: var(--accent-red); }
+
+        .toast-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .wallet-row { grid-template-columns: 1fr; gap: 12px; }
+            .wallet-amount { font-size: 1.7rem; }
+            .crypto-grid { grid-template-columns: repeat(2, 1fr); }
+            .plans-grid { grid-template-columns: 1fr 1fr; }
+            .header { padding: 0 14px; }
+            .main { padding: 16px 12px 0; }
+            .logo-name { display: none; }
+        }
+
+        @media (max-width: 380px) {
+            .plans-grid { grid-template-columns: 1fr; }
+            .crypto-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="logo">
+        <div class="logo-mark">G</div>
+        <div class="logo-name">Grovia</div>
+    </div>
+    <div class="header-right">
+        <div class="user-pill">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName">User</span>
+        </div>
+        <button class="logout-btn" onclick="showLogout()">Logout</button>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="main">
+
+    <!-- Wallets -->
+    <div class="wallet-row">
+        <div class="wallet-card deposit">
+            <div class="wallet-label">Deposit Wallet</div>
+            <div class="wallet-amount">$<span id="depositWallet">0.00</span></div>
+            <button class="wallet-btn" onclick="location.href='deposit.html'">Deposit</button>
+        </div>
+        <div class="wallet-card withdrawal">
+            <div class="wallet-label">Withdrawal Wallet</div>
+            <div class="wallet-amount">$<span id="withdrawalWallet">0.00</span></div>
+            <button class="wallet-btn" onclick="location.href='withdrawal.html'">Withdraw</button>
+        </div>
+    </div>
+
+    <!-- Market Rates -->
+    <section class="crypto-section">
+        <div class="section-head">
+            <h2 class="section-title">Market Rates</h2>
+            <div class="live-badge">
+                <span class="live-dot"></span>
+                LIVE
+            </div>
+        </div>
+        <div class="crypto-grid" id="cryptoGrid">
+            <!-- Skeletons -->
+            <div class="crypto-skeleton"><div class="skel" style="height:28px;width:60%"></div><div class="skel" style="height:20px;width:80%"></div><div class="skel" style="height:32px"></div></div>
+            <div class="crypto-skeleton"><div class="skel" style="height:28px;width:60%"></div><div class="skel" style="height:20px;width:80%"></div><div class="skel" style="height:32px"></div></div>
+            <div class="crypto-skeleton"><div class="skel" style="height:28px;width:60%"></div><div class="skel" style="height:20px;width:80%"></div><div class="skel" style="height:32px"></div></div>
+            <div class="crypto-skeleton"><div class="skel" style="height:28px;width:60%"></div><div class="skel" style="height:20px;width:80%"></div><div class="skel" style="height:32px"></div></div>
+            <div class="crypto-skeleton"><div class="skel" style="height:28px;width:60%"></div><div class="skel" style="height:20px;width:80%"></div><div class="skel" style="height:32px"></div></div>
+            <div class="crypto-skeleton"><div class="skel" style="height:28px;width:60%"></div><div class="skel" style="height:20px;width:80%"></div><div class="skel" style="height:32px"></div></div>
+        </div>
+        <div id="cryptoError" style="display:none; text-align:center; padding:20px; color:var(--text-muted); font-size:0.85rem;"></div>
+    </section>
+
+    <!-- Investment Plans -->
+    <section class="plans-section">
+        <div class="section-head">
+            <h2 class="section-title">Investment Plans</h2>
+        </div>
+        <div class="plans-grid" id="plansGrid"></div>
+    </section>
+
+    <!-- My Plans -->
+    <section class="myplans-section">
+        <div class="section-head">
+            <h2 class="section-title">My Plans</h2>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Daily ROI</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Days Left</th>
+                        <th>Status</th>
+                        <th>Next ROI</th>
+                    </tr>
+                </thead>
+                <tbody id="myPlansBody">
+                    <tr class="empty-row"><td colspan="8">No active plans yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+    <a href="dashboard.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="transactions.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="nav-label">History</span>
+    </a>
+    <a href="referrals.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">Referrals</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span class="nav-label">Profile</span>
+    </a>
+</nav>
+
+<!-- Purchase Confirmation Modal -->
+<div class="overlay" id="purchaseOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closePurchase()">×</button>
+        <div class="modal-title">Confirm Purchase</div>
+        <div id="purchaseDetails"></div>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closePurchase()">Cancel</button>
+            <button class="btn-modal confirm" id="confirmPurchaseBtn" onclick="confirmPurchase()">Confirm Purchase</button>
+        </div>
+    </div>
+</div>
+
+<!-- Welcome Modal -->
+<div class="overlay" id="welcomeOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeWelcome()">×</button>
+        <div class="modal-title">Welcome to Grovia 👋</div>
+        <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:16px;">
+            Hello <strong id="modalUser" style="color:var(--text-primary)"></strong>, you're in!
+        </p>
+        <div class="modal-row"><span>Min. Deposit</span><strong>$10</strong></div>
+        <div class="modal-row"><span>Min. Withdrawal</span><strong>$1</strong></div>
+        <div class="modal-row"><span>Withdrawal Fee</span><strong style="color:var(--accent-green)">Free</strong></div>
+        <div class="modal-row"><span>Withdrawal Hours</span><strong>8AM – 5PM Daily</strong></div>
+        <a href="https://t.me/groviaofficial" target="_blank" class="telegram-btn">📱 Join Telegram Group</a>
+    </div>
+</div>
+
+<!-- Logout Modal -->
+<div class="overlay" id="logoutOverlay">
+    <div class="modal">
+        <div class="modal-title" style="color:var(--accent-red)">Confirm Logout</div>
+        <p style="font-size:0.9rem;color:var(--text-secondary)">Are you sure you want to log out of your account?</p>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closeLogout()">Cancel</button>
+            <button class="btn-modal danger" onclick="doLogout()">Logout</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toasts -->
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, where, getDocs, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── Coins ──────────────────────────────────────
+const COIN_IDS = ['ethereum','tether','ripple','solana','cardano','dogecoin','avalanche-2','matic-network','polkadot','chainlink','litecoin','the-open-network'];
+const COIN_META = {
+    ethereum:           { symbol:'ETH',  name:'Ethereum'  },
+    tether:             { symbol:'USDT', name:'Tether'    },
+    ripple:             { symbol:'XRP',  name:'Ripple'    },
+    solana:             { symbol:'SOL',  name:'Solana'    },
+    cardano:            { symbol:'ADA',  name:'Cardano'   },
+    dogecoin:           { symbol:'DOGE', name:'Dogecoin'  },
+    'avalanche-2':      { symbol:'AVAX', name:'Avalanche' },
+    'matic-network':    { symbol:'POL',  name:'Polygon'   },
+    polkadot:           { symbol:'DOT',  name:'Polkadot'  },
+    chainlink:          { symbol:'LINK', name:'Chainlink' },
+    litecoin:           { symbol:'LTC',  name:'Litecoin'  },
+    'the-open-network': { symbol:'TON',  name:'Toncoin'   }
+};
+
+const PLANS = [
+    { name:'Grovia 1', price:10,  dailyROI:1.5  },
+    { name:'Grovia 2', price:20,  dailyROI:2.5  },
+    { name:'Grovia 3', price:30,  dailyROI:3.5  },
+    { name:'Grovia 4', price:50,  dailyROI:5.5  },
+    { name:'Grovia 5', price:100, dailyROI:10.5 }
+];
+
+const SPREAD        = 0.008;
+let currentUser     = null;
+let userData        = null;
+let refreshTimer    = null;
+let countdownTimer  = null;
+let pendingPurchase = null;
+
+// ── Toast ───────────────────────────────────────
+function toast(type, title, msg, dur = 4500) {
+    const box = document.getElementById('toasts');
+    const el  = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-icon">${type==='success'?'✓':'✗'}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(()=>el.remove(), 400); }, dur);
+}
+
+// ── Date helpers ────────────────────────────────
+// Safely convert any Firestore timestamp / JS Date / plain obj to JS Date
+function toDate(val) {
+    if (!val) return null;
+    if (typeof val.toMillis === 'function') return new Date(val.toMillis()); // Firestore Timestamp
+    if (val instanceof Date) return val;
+    if (val.seconds) return new Date(val.seconds * 1000);                   // plain {seconds, nanoseconds}
+    if (typeof val === 'number') return new Date(val);
+    return null;
+}
+
+function fmtDate(val) {
+    const d = toDate(val);
+    if (!d || isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+// Midnight of today (local time)
+function todayMidnight() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+// Next midnight (local time)
+function nextMidnight() {
+    const d = new Date();
+    d.setHours(24, 0, 0, 0);
+    return d;
+}
+
+// ── Countdown tick ──────────────────────────────
+function fmtCountdown(target) {
+    const diff = target - Date.now();
+    if (diff <= 0) return '00h 00m 00s';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000)   / 1000);
+    return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+}
+
+function startCountdownTick() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+        const nm = nextMidnight().getTime();
+        document.querySelectorAll('.cd-cell').forEach(el => {
+            el.textContent = fmtCountdown(nm);
+        });
+    }, 1000);
+}
+
+// ── ROI Drop Engine ─────────────────────────────
+/*
+  Runs on page load for every active plan.
+  - If plan endDate has passed  → mark "completed", no ROI.
+  - If lastROIDate is null OR was before today's midnight → credit dailyROI now.
+  - Sets lastROIDate = serverTimestamp() so it won't fire again today.
+  The user must visit the dashboard at least once per day to trigger their ROI.
+  For a production app, move this to a Firebase Cloud Function scheduled at 00:00.
+*/
+async function processROI(planDocId, planData) {
+    const now     = new Date();
+    const endDate = toDate(planData.endDate);
+
+    // 1. Expire plan if past end date
+    if (endDate && now >= endDate) {
+        if (planData.status === 'active') {
+            await updateDoc(doc(db, 'plans', planDocId), { status: 'completed' });
+        }
+        return;
+    }
+
+    // 2. Check if already paid today
+    const lastROI  = toDate(planData.lastROIDate);
+    const todayStart = todayMidnight();
+    if (lastROI && lastROI >= todayStart) return; // already paid today
+
+    // 3. Credit ROI
+    const roi = Number(planData.dailyROI) || 0;
+    if (roi <= 0) return;
+
+    // Mark as paid first (prevents double-credit if user refreshes quickly)
+    await updateDoc(doc(db, 'plans', planDocId), { lastROIDate: serverTimestamp() });
+
+    // Credit wallet
+    await updateDoc(doc(db, 'users', currentUser.uid), {
+        withdrawalWallet: increment(roi),
+        totalEarnings:    increment(roi)
+    });
+
+    toast('success', 'Daily ROI Credited! 💰', `$${roi.toFixed(2)} from ${planData.planName} added to your withdrawal wallet.`, 6000);
+}
+
+// ── Load & render user plans ────────────────────
+async function loadPlans() {
+    if (!currentUser) return;
+
+    const q    = query(collection(db, 'plans'), where('uid', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    const body = document.getElementById('myPlansBody');
+
+    if (snap.empty) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="8">No active plans yet</td></tr>';
+        return;
+    }
+
+    body.innerHTML = '';
+    const roiJobs = [];
+
+    snap.forEach(docSnap => {
+        const p  = docSnap.data();
+        const id = docSnap.id;
+
+        // Queue ROI for active plans
+        if (p.status === 'active') {
+            roiJobs.push(processROI(id, p));
+        }
+
+        // Dates
+        const startStr = fmtDate(p.startDate);
+        const endStr   = fmtDate(p.endDate);
+
+        // Days remaining
+        const endDate = toDate(p.endDate);
+        let daysLeft  = '—';
+        if (endDate) {
+            const diffDay = Math.ceil((endDate - Date.now()) / 86400000);
+            daysLeft = diffDay > 0 ? `${diffDay}d` : 'Ended';
+        }
+
+        // Status (derive from endDate client-side to stay accurate)
+        const expired  = endDate && Date.now() >= endDate;
+        const status   = expired ? 'completed' : (p.status || 'active');
+        const badgeCls = status === 'active' ? 'active' : 'completed';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${p.planName}</td>
+            <td>$${p.amount}</td>
+            <td style="color:var(--accent-green)">$${p.dailyROI}/day</td>
+            <td>${startStr}</td>
+            <td>${endStr}</td>
+            <td style="color:var(--text-muted);font-size:0.8rem;font-weight:600">${daysLeft}</td>
+            <td><span class="status-badge ${badgeCls}">${status}</span></td>
+            <td><span class="countdown-text cd-cell">${fmtCountdown(nextMidnight())}</span></td>
+        `;
+        body.appendChild(tr);
+    });
+
+    // Run all ROI jobs concurrently
+    await Promise.allSettled(roiJobs);
+
+    // Refresh wallet display after ROI credits
+    await loadUser();
+
+    // Start live countdown ticker
+    startCountdownTick();
+}
+
+// ── Crypto rates ────────────────────────────────
+function formatPrice(p) {
+    if (p >= 1000) return '$' + p.toLocaleString('en-US', { maximumFractionDigits:2 });
+    if (p >= 1)    return '$' + p.toFixed(2);
+    if (p >= 0.01) return '$' + p.toFixed(4);
+    return '$' + p.toFixed(6);
+}
+
+async function fetchCrypto() {
+    const ids = COIN_IDS.join(',');
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h`;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        renderCrypto(await res.json());
+        document.getElementById('cryptoError').style.display = 'none';
+    } catch (err) {
+        console.error('CoinGecko:', err);
+        const grid = document.getElementById('cryptoGrid');
+        if (!grid.querySelector('.crypto-card')) {
+            grid.innerHTML = '';
+            const e = document.getElementById('cryptoError');
+            e.style.display = 'block';
+            e.textContent   = 'Unable to load live rates. Retrying…';
+        }
+    }
+}
+
+function renderCrypto(data) {
+    const grid   = document.getElementById('cryptoGrid');
+    grid.innerHTML = '';
+    const sorted = COIN_IDS.map(id => data.find(c => c.id === id)).filter(Boolean);
+
+    sorted.forEach(coin => {
+        const meta   = COIN_META[coin.id] || { symbol:coin.symbol.toUpperCase(), name:coin.name };
+        const price  = coin.current_price;
+        const change = coin.price_change_percentage_24h || 0;
+        const pos    = change >= 0;
+
+        const card = document.createElement('div');
+        card.className = 'crypto-card';
+        card.innerHTML = `
+            <div class="crypto-header">
+                <div class="crypto-info">
+                    <img class="crypto-icon" src="${coin.image}" alt="${meta.symbol}" loading="lazy" onerror="this.style.display='none'">
+                    <div><div class="crypto-symbol">${meta.symbol}</div><div class="crypto-name-small">${meta.name}</div></div>
+                </div>
+                <div class="change-pill ${pos?'pos':'neg'}">${pos?'+':''}${change.toFixed(2)}%</div>
+            </div>
+            <div class="crypto-price">${formatPrice(price)}</div>
+            <div class="crypto-rates-row">
+                <div class="rate-box buy"><div class="rate-label">Buy</div><div class="rate-value buy">${formatPrice(price*(1+SPREAD))}</div></div>
+                <div class="rate-box sell"><div class="rate-label">Sell</div><div class="rate-value sell">${formatPrice(price*(1-SPREAD))}</div></div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function startAutoRefresh() {
+    fetchCrypto();
+    refreshTimer = setInterval(fetchCrypto, 60000);
+}
+
+// ── Plan cards ──────────────────────────────────
+function renderPlans() {
+    const grid = document.getElementById('plansGrid');
+    grid.innerHTML = '';
+    PLANS.forEach((plan, i) => {
+        const card = document.createElement('div');
+        card.className = 'plan-card';
+        card.innerHTML = `
+            <div class="plan-tier">PLAN ${i+1}</div>
+            <div class="plan-name">${plan.name}</div>
+            <div class="plan-price"><span>$</span>${plan.price}</div>
+            <div class="plan-roi">+$${plan.dailyROI} / day</div>
+            <div class="plan-duration">30-day duration</div>
+            <button class="invest-btn" onclick="window.showPurchaseModal('${plan.name}',${plan.price},${plan.dailyROI})">Invest Now</button>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// ── Purchase modal ──────────────────────────────
+window.showPurchaseModal = function(planName, planPrice, dailyROI) {
+    pendingPurchase = { planName, planPrice, dailyROI };
+    document.getElementById('purchaseDetails').innerHTML = `
+        <div class="modal-row"><span>Plan</span><strong>${planName}</strong></div>
+        <div class="modal-row"><span>Cost</span><strong>$${planPrice}</strong></div>
+        <div class="modal-row"><span>Daily ROI</span><strong style="color:var(--accent-green)">$${dailyROI}/day</strong></div>
+        <div class="modal-row"><span>Duration</span><strong>30 Days</strong></div>
+        <div class="modal-row"><span>Total Return</span><strong style="color:var(--accent-green)">$${(dailyROI*30).toFixed(2)}</strong></div>
+    `;
+    document.getElementById('purchaseOverlay').classList.add('show');
+};
+
+window.closePurchase = function() {
+    document.getElementById('purchaseOverlay').classList.remove('show');
+    pendingPurchase = null;
+};
+
+window.confirmPurchase = async function() {
+    if (!pendingPurchase) return;
+    const { planName, planPrice, dailyROI } = pendingPurchase;
+
+    if ((userData?.depositWallet || 0) < planPrice) {
+        toast('error', 'Insufficient Funds', 'Please top up your deposit wallet first.');
+        window.closePurchase();
+        return;
+    }
+
+    const btn = document.getElementById('confirmPurchaseBtn');
+    btn.disabled    = true;
+    btn.textContent = 'Processing…';
+
+    try {
+        await updateDoc(doc(db, 'users', currentUser.uid), { depositWallet: increment(-planPrice) });
+
+        const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        await addDoc(collection(db, 'plans'), {
+            uid:         currentUser.uid,
+            planName,
+            amount:      planPrice,
+            dailyROI,
+            startDate:   serverTimestamp(),
+            endDate,                   // Firestore accepts JS Date directly
+            lastROIDate: null,         // null = no ROI paid yet
+            status:      'active',
+            createdAt:   serverTimestamp()
+        });
+
+        await handleReferral(currentUser.uid, planPrice);
+        window.closePurchase();
+        toast('success', 'Plan Activated! 🚀', `${planName} is live. First ROI drops at midnight tonight.`);
+        await loadUser();
+        await loadPlans();
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Failed', 'Something went wrong. Please try again.');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Confirm Purchase';
+    }
+};
+
+// ── Referral distribution ───────────────────────
+async function handleReferral(uid, planPrice) {
+    try {
+        const userSnap = await getDoc(doc(db, 'users', uid));
+        if (!userSnap.exists() || !userSnap.data().referredBy) return;
+
+        const ref1 = userSnap.data().referredBy;
+        const dupQ = query(collection(db,'referralBonuses'), where('uid','==',uid), where('referrerUid','==',ref1));
+        if (!(await getDocs(dupQ)).empty) return;
+
+        const pay = async (toUid, amt, level) => {
+            await updateDoc(doc(db,'users',toUid), {
+                referralEarnings: increment(amt),
+                withdrawalWallet: increment(amt)
+            });
+            await addDoc(collection(db,'referralBonuses'), { uid, referrerUid:toUid, amount:amt, planPrice, level, createdAt:serverTimestamp() });
+            return (await getDoc(doc(db,'users',toUid))).data();
+        };
+
+        const r1 = await pay(ref1, planPrice * 0.10, 1);
+        if (r1?.referredBy) {
+            const r2 = await pay(r1.referredBy, planPrice * 0.05, 2);
+            if (r2?.referredBy) await pay(r2.referredBy, planPrice * 0.03, 3);
+        }
+    } catch (e) { console.error('Referral error:', e); }
+}
+
+// ── Load user wallet balances ───────────────────
+async function loadUser() {
+    if (!currentUser) return;
+    try {
+        const snap = await getDoc(doc(db, 'users', currentUser.uid));
+        if (snap.exists()) {
+            userData = snap.data();
+            document.getElementById('userName').textContent        = userData.username;
+            document.getElementById('userAvatar').textContent      = userData.username.charAt(0).toUpperCase();
+            document.getElementById('depositWallet').textContent   = (userData.depositWallet   || 0).toFixed(2);
+            document.getElementById('withdrawalWallet').textContent= (userData.withdrawalWallet || 0).toFixed(2);
+        }
+    } catch (e) { console.error(e); }
+}
+
+// ── Modals ──────────────────────────────────────
+window.showLogout  = () => document.getElementById('logoutOverlay').classList.add('show');
+window.closeLogout = () => document.getElementById('logoutOverlay').classList.remove('show');
+window.closeWelcome= () => document.getElementById('welcomeOverlay').classList.remove('show');
+
+window.doLogout = async () => {
+    clearInterval(refreshTimer);
+    clearInterval(countdownTimer);
+    await signOut(auth);
+    location.href = 'login.html';
+};
+
+document.querySelectorAll('.overlay').forEach(o =>
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('show'); })
+);
+
+// ── Auth ────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+    if (user) {
+        currentUser = user;
+        await loadUser();
+        renderPlans();
+        startAutoRefresh();
+        await loadPlans();   // ← processes ROI here, then reloads wallets
+
+        if (!sessionStorage.getItem('grovia_welcomed')) {
+            document.getElementById('modalUser').textContent = userData?.username || 'Friend';
+            document.getElementById('welcomeOverlay').classList.add('show');
+            sessionStorage.setItem('grovia_welcomed', '1');
+        }
+    } else {
+        location.href = 'login.html';
+    }
+});
+</script>
+</body>
+</html>
