@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw — Grovia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0c1220;
+            --bg-secondary: #111927;
+            --bg-card: #162030;
+            --bg-elevated: #1c2a3a;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-gold: #ffc107;
+            --accent-red: #ff5252;
+            --text-primary: #eef2f7;
+            --text-secondary: #8fa3b8;
+            --text-muted: #506070;
+            --border: rgba(255,255,255,0.07);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 15% 20%, rgba(255,193,7,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 85% 80%, rgba(41,182,246,0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: var(--transition);
+        }
+        .back-btn:hover { border-color: rgba(255,193,7,0.4); color: var(--accent-gold); }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .balance-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-gold), #ff9800);
+        }
+
+        .balance-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .balance-amount {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .plan-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .plan-status.active { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.2); color: var(--accent-green); }
+        .plan-status.inactive { background: rgba(255,82,82,0.08); border: 1px solid rgba(255,82,82,0.2); color: var(--accent-red); }
+        .plan-status.checking { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-muted); }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .plan-status.active .status-dot { background: var(--accent-green); animation: pulse 1.4s ease infinite; }
+        .plan-status.inactive .status-dot { background: var(--accent-red); }
+        .plan-status.checking .status-dot { background: var(--text-muted); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* Payment Method Selection */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .payment-method {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .payment-method:hover { border-color: var(--accent-gold); }
+        .payment-method.active { border-color: var(--accent-gold); background: rgba(255,193,7,0.05); }
+        .payment-method-icon { font-size: 2rem; margin-bottom: 10px; }
+        .payment-method-name { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; }
+        .payment-method-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 13px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-field:focus { border-color: rgba(255,193,7,0.5); }
+        .input-field:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .field-hint { margin-top: 5px; font-size: 0.72rem; color: var(--text-muted); }
+        .field-hint.error { color: var(--accent-red); }
+        .field-hint.success { color: var(--accent-green); }
+
+        /* Bank Select */
+        .bank-select {
+            width: 100%;
+            padding: 13px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .bank-select:focus { border-color: rgba(255,193,7,0.5); }
+
+        .conversion-display {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        .conversion-display.show { display: block; }
+        .conversion-text { font-size: 0.85rem; color: var(--accent-gold); font-weight: 600; }
+
+        .info-table {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 14px;
+            font-size: 0.83rem;
+        }
+        .info-row + .info-row { border-top: 1px solid var(--border); }
+        .info-row span:first-child { color: var(--text-muted); }
+        .info-row span:last-child { font-weight: 600; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            color: #0c1220;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .submit-btn:hover:not(:disabled) { opacity: 0.9; }
+        .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .toasts {
+            position: fixed;
+            bottom: 20px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 13px 16px;
+            min-width: 260px;
+            max-width: 340px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+        }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before { background: var(--accent-red); }
+        .toast.info::before { background: var(--accent-gold); }
+        .toast-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); }
+
+        @media (max-width: 480px) {
+            .payment-methods { grid-template-columns: 1fr; }
+            .balance-amount { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="page-header">
+        <button class="back-btn" onclick="location.href='dashboard.html'">←</button>
+        <h1 class="page-title">Withdraw Funds</h1>
+    </div>
+
+    <div class="balance-card">
+        <div class="balance-label">Withdrawal Wallet</div>
+        <div class="balance-amount">$<span id="walletBalance">0.00</span></div>
+    </div>
+
+    <div class="plan-status checking" id="planStatus">
+        <div class="status-dot"></div>
+        <span id="statusText">Checking plan status...</span>
+    </div>
+
+    <!-- Payment Method Selection -->
+    <div class="payment-methods">
+        <div class="payment-method active" id="usdtMethod" onclick="selectMethod('usdt')">
+            <div class="payment-method-icon">💎</div>
+            <div class="payment-method-name">USDT (BEP20)</div>
+            <div class="payment-method-desc">Crypto withdrawal</div>
+        </div>
+        <div class="payment-method" id="bankMethod" onclick="selectMethod('bank')">
+            <div class="payment-method-icon">🏦</div>
+            <div class="payment-method-name">Bank Transfer</div>
+            <div class="payment-method-desc">Naira withdrawal</div>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="form-group">
+            <label class="form-label">Amount (USD)</label>
+            <input type="number" id="withdrawAmount" class="input-field" placeholder="0.00" min="1" step="0.01" disabled>
+            <div class="field-hint" id="amountHint">Minimum: $1.00 (USDT) / ₦1,500 (Naira)</div>
+        </div>
+
+        <!-- USDT Fields -->
+        <div id="usdtFields">
+            <div class="form-group">
+                <label class="form-label">BEP20 Wallet Address</label>
+                <input type="text" id="walletAddress" class="input-field" placeholder="0x..." disabled>
+                <div class="field-hint" id="addressHint">Starts with 0x, 42 characters</div>
+            </div>
+        </div>
+
+        <!-- Bank Fields -->
+        <div id="bankFields" style="display: none;">
+            <div class="form-group">
+                <label class="form-label">Select Bank</label>
+                <select class="bank-select" id="bankSelect" disabled>
+                    <option value="">Choose your bank...</option>
+                    <option value="Access Bank">🏦 Access Bank</option>
+                    <option value="Citibank">🏦 Citibank</option>
+                    <option value="Ecobank">🏦 Ecobank</option>
+                    <option value="Fidelity Bank">🏦 Fidelity Bank</option>
+                    <option value="First Bank">🏦 First Bank</option>
+                    <option value="First City Monument Bank">🏦 FCMB</option>
+                    <option value="Globus Bank">🏦 Globus Bank</option>
+                    <option value="Guaranty Trust Bank">🏦 GTBank</option>
+                    <option value="Heritage Bank">🏦 Heritage Bank</option>
+                    <option value="Jaiz Bank">🏦 Jaiz Bank</option>
+                    <option value="Keystone Bank">🏦 Keystone Bank</option>
+                    <option value="Kuda Bank">🏦 Kuda Bank</option>
+                    <option value="Opay">🏦 Opay</option>
+                    <option value="Palmpay">🏦 Palmpay</option>
+                    <option value="Polaris Bank">🏦 Polaris Bank</option>
+                    <option value="Providus Bank">🏦 Providus Bank</option>
+                    <option value="Stanbic IBTC">🏦 Stanbic IBTC</option>
+                    <option value="Standard Chartered">🏦 Standard Chartered</option>
+                    <option value="Sterling Bank">🏦 Sterling Bank</option>
+                    <option value="SunTrust Bank">🏦 SunTrust Bank</option>
+                    <option value="Union Bank">🏦 Union Bank</option>
+                    <option value="United Bank for Africa">🏦 UBA</option>
+                    <option value="Unity Bank">🏦 Unity Bank</option>
+                    <option value="Wema Bank">🏦 Wema Bank</option>
+                    <option value="Zenith Bank">🏦 Zenith Bank</option>
+                    <option value="Moniepoint">🏦 Moniepoint</option>
+                    <option value="VFD Microfinance Bank">🏦 VFD Bank</option>
+                    <option value="Rubies Bank">🏦 Rubies Bank</option>
+                    <option value="Mintyn Bank">🏦 Mintyn Bank</option>
+                    <option value="Sparkle Bank">🏦 Sparkle Bank</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Account Number</label>
+                <input type="text" id="accountNumber" class="input-field" placeholder="Enter 10-digit account number" maxlength="10" disabled>
+                <div class="field-hint" id="accountHint">10-digit NUBAN account number</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Account Name</label>
+                <input type="text" id="accountName" class="input-field" placeholder="Enter account holder name" disabled>
+            </div>
+        </div>
+
+        <div class="conversion-display" id="conversionDisplay">
+            <div class="conversion-text" id="conversionText"></div>
+        </div>
+
+        <div class="info-table">
+            <div class="info-row"><span>Fee</span><span style="color:var(--accent-red);">5%</span></div>
+            <div class="info-row"><span>Processing hours</span><span>8 AM - 5 PM daily</span></div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" disabled onclick="submitWithdrawal()">Submit Request</button>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, increment, addDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const NAIRA_RATE = 1500;
+const WITHDRAWAL_FEE = 0.05; // 5%
+
+let currentUser = null;
+let userData = null;
+let hasActivePlan = false;
+let selectedMethod = 'usdt';
+
+function toast(type, title, msg, dur = 5000) {
+    const icons = { success: 'OK', error: '!', info: 'i' };
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-icon">${icons[type]}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, dur);
+}
+
+function setHint(id, msg, type = '') {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.className = `field-hint ${type}`; }
+}
+
+window.selectMethod = function(method) {
+    selectedMethod = method;
+    document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
+    document.getElementById(method + 'Method').classList.add('active');
+    
+    document.getElementById('usdtFields').style.display = method === 'usdt' ? 'block' : 'none';
+    document.getElementById('bankFields').style.display = method === 'bank' ? 'block' : 'none';
+    
+    // Reset fields
+    document.getElementById('withdrawAmount').value = '';
+    document.getElementById('conversionDisplay').classList.remove('show');
+    setHint('amountHint', method === 'usdt' ? 'Minimum: $1.00' : 'Minimum: ₦1,500 ($1.00)', '');
+};
+
+window.submitWithdrawal = async function() {
+    if (!currentUser || !userData || !hasActivePlan) return;
+    
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    
+    if (!amount || amount < 1) {
+        toast('error', 'Invalid Amount', 'Minimum withdrawal is $1.00.');
+        return;
+    }
+    
+    if (amount > (userData.withdrawalWallet || 0)) {
+        toast('error', 'Insufficient Balance', 'Amount exceeds available balance.');
+        return;
+    }
+    
+    const fee = amount * WITHDRAWAL_FEE;
+    const netAmount = amount - fee;
+    
+    let withdrawalDetails = {};
+    
+    if (selectedMethod === 'usdt') {
+        const address = document.getElementById('walletAddress').value.trim();
+        if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+            toast('error', 'Invalid Address', 'Please enter a valid BEP20 address.');
+            return;
+        }
+        withdrawalDetails = {
+            method: 'USDT (BEP20)',
+            walletAddress: address,
+            network: 'BEP20'
+        };
+    } else {
+        const bank = document.getElementById('bankSelect').value;
+        const accountNumber = document.getElementById('accountNumber').value.trim();
+        const accountName = document.getElementById('accountName').value.trim();
+        
+        if (!bank) { toast('error', 'Select Bank', 'Please choose a bank.'); return; }
+        if (accountNumber.length !== 10) { toast('error', 'Invalid Account', 'Account number must be 10 digits.'); return; }
+        if (!accountName || accountName.length < 3) { toast('error', 'Invalid Name', 'Please enter account holder name.'); return; }
+        
+        withdrawalDetails = {
+            method: 'Bank Transfer (Naira)',
+            bank,
+            accountNumber,
+            accountName,
+            nairaAmount: amount * NAIRA_RATE
+        };
+    }
+    
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    
+    try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+            withdrawalWallet: increment(-amount)
+        });
+        
+        await addDoc(collection(db, 'withdrawals'), {
+            uid: currentUser.uid,
+            username: userData.username || '',
+            email: userData.email || '',
+            amount,
+            fee,
+            netAmount,
+            ...withdrawalDetails,
+            status: 'pending',
+            createdAt: serverTimestamp()
+        });
+        
+        toast('success', 'Request Submitted', `$${amount.toFixed(2)} withdrawal pending (Fee: $${fee.toFixed(2)}).`);
+        
+        document.getElementById('withdrawAmount').value = '';
+        if (selectedMethod === 'usdt') document.getElementById('walletAddress').value = '';
+        else {
+            document.getElementById('accountNumber').value = '';
+            document.getElementById('accountName').value = '';
+        }
+        
+        await loadUserData();
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Failed', 'Error submitting withdrawal.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Request';
+    }
+};
+
+document.getElementById('withdrawAmount').addEventListener('input', function() {
+    const v = parseFloat(this.value);
+    const display = document.getElementById('conversionDisplay');
+    const text = document.getElementById('conversionText');
+    
+    if (selectedMethod === 'bank' && v && v >= 1) {
+        const nairaAmount = v * NAIRA_RATE;
+        const fee = v * WITHDRAWAL_FEE;
+        display.classList.add('show');
+        text.textContent = `₦${nairaAmount.toLocaleString()} | Fee: $${fee.toFixed(2)} | You receive: $${(v - fee).toFixed(2)}`;
+    } else {
+        display.classList.remove('show');
+    }
+});
+
+async function loadUserData() {
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if (snap.exists()) {
+        userData = snap.data();
+        document.getElementById('walletBalance').textContent = (userData.withdrawalWallet || 0).toFixed(2);
+    }
+}
+
+async function checkActivePlan() {
+    const q = query(collection(db, 'plans'), where('uid', '==', currentUser.uid), where('status', '==', 'active'));
+    const snap = await getDocs(q);
+    const statusEl = document.getElementById('planStatus');
+    const statusTxt = document.getElementById('statusText');
+    const btn = document.getElementById('submitBtn');
+    const amtInput = document.getElementById('withdrawAmount');
+    const addrInput = document.getElementById('walletAddress');
+    const bankSelect = document.getElementById('bankSelect');
+    const accountInput = document.getElementById('accountNumber');
+    const accountNameInput = document.getElementById('accountName');
+    
+    if (!snap.empty) {
+        hasActivePlan = true;
+        statusEl.className = 'plan-status active';
+        statusTxt.textContent = 'Active plan detected - withdrawal available.';
+        btn.disabled = false;
+        amtInput.disabled = false;
+        addrInput.disabled = false;
+        bankSelect.disabled = false;
+        accountInput.disabled = false;
+        accountNameInput.disabled = false;
+    } else {
+        hasActivePlan = false;
+        statusEl.className = 'plan-status inactive';
+        statusTxt.textContent = 'No active plan found. Purchase a plan to unlock withdrawals.';
+    }
+}
+
+onAuthStateChanged(auth, async user => {
+    if (user) {
+        currentUser = user;
+        await loadUserData();
+        await checkActivePlan();
+    } else {
+        location.href = 'login.html';
+    }
+});
+</script>
+</body>
+</html>
