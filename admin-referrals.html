@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referrals - Grovia Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-elevated: #22222e;
+            --accent-red: #ff4444;
+            --accent-red-dark: #cc0000;
+            --accent-gold: #ffd700;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-purple: #7c3aed;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --border: rgba(255,255,255,0.08);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 50% 40% at 10% 10%, rgba(124,58,237,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 90%, rgba(41,182,246,0.03) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            position: sticky; top: 0; z-index: 200;
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-mark {
+            width: 36px; height: 36px; border-radius: 9px;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+            display: grid; place-items: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: white;
+        }
+        .logo-name {
+            font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .admin-email { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+        .logout-btn {
+            padding: 6px 16px; border-radius: 40px; border: 1px solid rgba(255,68,68,0.4);
+            background: transparent; color: var(--accent-red); font-family: var(--font-body);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+        }
+        .logout-btn:hover { background: rgba(255,68,68,0.1); }
+
+        .main { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 24px 16px 0; }
+
+        .stats-row {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px; text-align: center;
+        }
+        .stat-label {
+            font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        .stat-value { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
+        .stat-value.level1 { color: var(--accent-green); }
+        .stat-value.level2 { color: var(--accent-blue); }
+        .stat-value.level3 { color: var(--accent-purple); }
+        .stat-value.total { color: var(--accent-gold); }
+
+        .search-wrapper { position: relative; margin-bottom: 20px; }
+        .search-input {
+            width: 100%; padding: 12px 16px 12px 40px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text-primary);
+            font-family: var(--font-body); font-size: 0.85rem; outline: none;
+            transition: var(--transition);
+        }
+        .search-input:focus { border-color: var(--accent-purple); }
+        .search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 1rem;
+        }
+
+        /* User result card */
+        .user-result-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 14px;
+            transition: var(--transition);
+        }
+        .user-result-card:hover { border-color: var(--accent-purple); }
+        .user-result-avatar {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            display: grid; place-items: center; font-weight: 700; font-size: 1.1rem;
+            color: white; flex-shrink: 0;
+        }
+        .user-result-info { flex: 1; min-width: 0; }
+        .user-result-name { font-weight: 700; font-size: 0.95rem; }
+        .user-result-email { font-size: 0.72rem; color: var(--accent-blue); word-break: break-all; }
+        .user-result-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+        .view-ref-btn {
+            padding: 9px 16px; border-radius: 8px; font-size: 0.78rem; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: white; border: none; cursor: pointer; transition: var(--transition);
+            flex-shrink: 0; font-family: var(--font-body);
+        }
+        .view-ref-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Detail panel */
+        .detail-panel {
+            background: var(--bg-card); border: 1px solid var(--accent-purple);
+            border-radius: var(--radius-lg); padding: 18px; margin-bottom: 18px;
+            animation: fadeUp 0.3s ease;
+        }
+        @keyframes fadeUp {
+            from { transform: translateY(12px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .detail-panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; gap: 10px;
+        }
+        .detail-panel-title {
+            font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+            color: var(--accent-purple);
+        }
+        .detail-panel-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .back-btn {
+            padding: 7px 14px; border-radius: 8px; font-size: 0.72rem; font-weight: 700;
+            background: rgba(255,255,255,0.05); color: var(--text-secondary);
+            border: 1px solid var(--border); cursor: pointer; transition: var(--transition);
+            font-family: var(--font-body);
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+
+        .detail-stats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;
+        }
+        .detail-stat {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 10px; text-align: center;
+        }
+        .detail-stat-label { font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; }
+        .detail-stat-value { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; }
+
+        /* Referral list */
+        .referrals-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .referral-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 14px 16px; transition: var(--transition);
+        }
+        .referral-card:hover { border-color: var(--accent-purple); }
+        .referral-card.level-1 { border-left: 3px solid var(--accent-green); }
+        .referral-card.level-2 { border-left: 3px solid var(--accent-blue); }
+        .referral-card.level-3 { border-left: 3px solid var(--accent-purple); }
+
+        .referral-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 8px; flex-wrap: wrap; gap: 8px;
+        }
+        .referral-user { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 150px; }
+        .referral-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            display: grid; place-items: center; font-weight: 700; font-size: 0.9rem;
+            color: white; flex-shrink: 0;
+        }
+        .referral-info { flex: 1; min-width: 0; }
+        .referral-name { font-weight: 600; font-size: 0.85rem; }
+        .referral-email { font-size: 0.72rem; color: var(--accent-blue); word-break: break-all; font-family: 'DM Mono', monospace; }
+        .referral-amount {
+            font-family: var(--font-display); font-weight: 700; font-size: 1rem;
+            color: var(--accent-gold);
+        }
+        .referral-level {
+            display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 600;
+            margin-top: 3px;
+        }
+        .referral-level.level-1 { background: rgba(0,230,118,0.15); color: var(--accent-green); }
+        .referral-level.level-2 { background: rgba(41,182,246,0.15); color: var(--accent-blue); }
+        .referral-level.level-3 { background: rgba(124,58,237,0.15); color: var(--accent-purple); }
+
+        .referral-details {
+            display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px;
+            font-size: 0.72rem; color: var(--text-muted);
+        }
+        .referral-details strong { color: var(--text-secondary); font-weight: 600; }
+
+        .empty-state {
+            text-align: center; padding: 40px 20px; background: var(--bg-card);
+            border-radius: var(--radius-md); border: 1px solid var(--border);
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+        .empty-state-icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.5; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+            background: rgba(10,10,15,0.95); backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border); display: flex; align-items: center;
+            justify-content: space-around; z-index: 200;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px; background: none;
+            border: none; color: var(--text-muted); cursor: pointer; transition: var(--transition);
+            padding: 4px 12px; text-decoration: none; font-family: var(--font-body);
+        }
+        .nav-item:hover, .nav-item.active { color: var(--accent-red); }
+        .nav-item svg { width: 22px; height: 22px; }
+        .nav-label { font-size: 0.6rem; font-weight: 600; }
+
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+            z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            padding: 25px; width: 100%; max-width: 400px; position: relative;
+            animation: fadeUp 0.25s ease;
+        }
+        .modal-title {
+            font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+            margin-bottom: 12px; color: var(--accent-red);
+        }
+        .modal-text { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px; }
+        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-modal {
+            padding: 11px; border-radius: var(--radius-sm); font-family: var(--font-body);
+            font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; transition: var(--transition);
+        }
+        .btn-modal.cancel { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-modal.danger { background: rgba(255,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(255,68,68,0.3); }
+        .btn-modal.danger:hover { background: var(--accent-red); color: white; }
+
+        .toasts { position: fixed; bottom: 76px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 13px 16px; min-width: 280px; max-width: 360px; display: flex; gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before { background: var(--accent-red); }
+        .toast-icon { font-size: 1rem; flex-shrink: 0; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); }
+
+        @media (max-width: 600px) {
+            .main { padding: 16px 12px 0; }
+            .logo-name { display: none; }
+            .admin-email { display: none; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .detail-stats { grid-template-columns: repeat(2, 1fr); }
+            .user-result-card { flex-wrap: wrap; }
+            .view-ref-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <div class="logo-mark">A</div>
+        <div class="logo-name">Admin Panel</div>
+    </div>
+    <div class="header-right">
+        <span class="admin-email" id="adminEmail">admin@grovia.com</span>
+        <button class="logout-btn" onclick="showLogout()">Logout</button>
+    </div>
+</header>
+
+<main class="main">
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Level 1</div>
+            <div class="stat-value level1" id="statLevel1">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Level 2</div>
+            <div class="stat-value level2" id="statLevel2">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Level 3</div>
+            <div class="stat-value level3" id="statLevel3">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Paid</div>
+            <div class="stat-value total" id="statTotal">$0</div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search user by username..." oninput="onSearchInput()">
+    </div>
+
+    <!-- Results -->
+    <div id="resultsContainer">
+        <div class="empty-state">
+            <div class="empty-state-icon">🔎</div>
+            <div>Type a username above to view their referrals</div>
+        </div>
+    </div>
+</main>
+
+<nav class="bottom-nav">
+    <a href="admin-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="admin-users.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">Users</span>
+    </a>
+    <a href="admin-deposits.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h2m4 0h2m-8 4h6M5 10l1-7h12l1 7M5 10v10a2 2 0 002 2h10a2 2 0 002-2V10"/></svg>
+        <span class="nav-label">Deposits</span>
+    </a>
+    <a href="admin-withdrawals.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14h18M7 19h2m4 0h2m-8 4h6M5 14l-1-7h16l-1 7M5 14v-4a2 2 0 012-2h10a2 2 0 012 2v4"/></svg>
+        <span class="nav-label">Withdrawals</span>
+    </a>
+    <a href="admin-referrals.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">Referrals</span>
+    </a>
+</nav>
+
+<!-- Logout Modal -->
+<div class="overlay" id="logoutOverlay">
+    <div class="modal">
+        <div class="modal-title">Confirm Logout</div>
+        <p class="modal-text">Are you sure you want to logout?</p>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closeLogout()">Cancel</button>
+            <button class="btn-modal danger" onclick="doLogout()">Logout</button>
+        </div>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let allUsers = [];
+let allUsersMap = {};          // uid -> userData
+let allReferralBonuses = [];   // all referralBonuses docs
+let currentViewUser = null;    // user whose referrals we're viewing
+
+function toast(type, title, msg) {
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-icon">${type === 'success' ? 'OK' : '!'}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 4000);
+}
+
+window.showLogout = () => document.getElementById('logoutOverlay').classList.add('show');
+window.closeLogout = () => document.getElementById('logoutOverlay').classList.remove('show');
+window.doLogout = async () => {
+    sessionStorage.removeItem('grovia_admin');
+    await signOut(auth);
+    location.href = 'admin-login.html';
+};
+
+function formatDate(dateValue) {
+    if (!dateValue) return '—';
+    let date;
+    if (typeof dateValue.toDate === 'function') date = dateValue.toDate();
+    else if (dateValue instanceof Date) date = dateValue;
+    else return '—';
+    return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ─────────────────────────── INITIAL LOAD ─────────────────────────── */
+async function loadAll() {
+    try {
+        // Load all users
+        const usersSnap = await getDocs(collection(db, 'users'));
+        allUsers = [];
+        allUsersMap = {};
+        usersSnap.forEach(d => {
+            const data = d.data();
+            allUsers.push({ id: d.id, ...data });
+            allUsersMap[d.id] = { id: d.id, ...data };
+        });
+
+        // Load all referral bonuses
+        const refSnap = await getDocs(collection(db, 'referralBonuses'));
+        allReferralBonuses = [];
+        refSnap.forEach(d => {
+            allReferralBonuses.push({ id: d.id, ...d.data() });
+        });
+
+        // Update global stats
+        const level1 = allReferralBonuses.filter(r => r.level === 1).length;
+        const level2 = allReferralBonuses.filter(r => r.level === 2).length;
+        const level3 = allReferralBonuses.filter(r => r.level === 3).length;
+        const totalPaid = allReferralBonuses.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+
+        document.getElementById('statLevel1').textContent = level1;
+        document.getElementById('statLevel2').textContent = level2;
+        document.getElementById('statLevel3').textContent = level3;
+        document.getElementById('statTotal').textContent = '$' + totalPaid.toFixed(2);
+
+    } catch (e) {
+        console.error('Load error:', e);
+        toast('error', 'Load Failed', 'Could not load data.');
+    }
+}
+
+/* ─────────────────────────── SEARCH ─────────────────────────── */
+window.onSearchInput = function() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const container = document.getElementById('resultsContainer');
+
+    // If currently viewing a user detail, back out when search changes
+    if (currentViewUser) {
+        currentViewUser = null;
+    }
+
+    if (!query) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔎</div>
+                <div>Type a username above to view their referrals</div>
+            </div>
+        `;
+        return;
+    }
+
+    // Filter users by username (or email) match
+    const matches = allUsers.filter(u =>
+        (u.username || '').toLowerCase().includes(query) ||
+        (u.email || '').toLowerCase().includes(query)
+    );
+
+    if (matches.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">❌</div>
+                <div>No user found matching "<strong>${query}</strong>"</div>
+            </div>
+        `;
+        return;
+    }
+
+    // Sort by direct referral count (descending)
+    matches.sort((a, b) => {
+        const aCount = allUsers.filter(u => u.referredBy === a.id).length;
+        const bCount = allUsers.filter(u => u.referredBy === b.id).length;
+        return bCount - aCount;
+    });
+
+    renderUserResults(matches);
+};
+
+function renderUserResults(users) {
+    const container = document.getElementById('resultsContainer');
+    container.innerHTML = '';
+
+    users.slice(0, 10).forEach(u => {
+        const directCount = allUsers.filter(x => x.referredBy === u.id).length;
+
+        const card = document.createElement('div');
+        card.className = 'user-result-card';
+        card.innerHTML = `
+            <div class="user-result-avatar">${(u.username || 'U').charAt(0).toUpperCase()}</div>
+            <div class="user-result-info">
+                <div class="user-result-name">${u.username || 'Unknown'}</div>
+                <div class="user-result-email">${u.email || 'no-email'}</div>
+                <div class="user-result-meta">Direct referrals: <strong>${directCount}</strong></div>
+            </div>
+            <button class="view-ref-btn" onclick="viewUserReferrals('${u.id}')">View Referrals</button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/* ─────────────────────────── VIEW USER'S REFERRALS ─────────────────────────── */
+window.viewUserReferrals = function(userId) {
+    const user = allUsersMap[userId];
+    if (!user) { toast('error', 'Not Found', 'User not found.'); return; }
+
+    currentViewUser = user;
+
+    // Build hierarchy: get all users whose referredBy == userId (Level 1)
+    const level1 = allUsers.filter(u => u.referredBy === userId);
+
+    // Level 2: referredBy == any Level1 uid
+    const level1Ids = level1.map(u => u.id);
+    const level2 = allUsers.filter(u => level1Ids.includes(u.referredBy));
+
+    // Level 3: referredBy == any Level2 uid
+    const level2Ids = level2.map(u => u.id);
+    const level3 = allUsers.filter(u => level2Ids.includes(u.referredBy));
+
+    // Compute how much each downline deposited (from approved deposits) AND from wallet
+    // We use the user's `totalDeposits` field if present, else sum from deposits collection.
+    // Simpler: use `totalDeposits` field. But for accuracy, let's look at the wallet too.
+    // Actually let's just fetch the deposits for each downline and sum them.
+    // For performance, we'll do it async after rendering skeleton.
+
+    // Compute bonuses earned by the viewer from referralBonuses
+    // where referrerUid == userId and uid == downline's uid
+    const bonuses = allReferralBonuses.filter(b => b.referrerUid === userId);
+
+    const container = document.getElementById('resultsContainer');
+    container.innerHTML = `
+        <div class="detail-panel">
+            <div class="detail-panel-header">
+                <div>
+                    <div class="detail-panel-title">Referrals of ${user.username || 'User'}</div>
+                    <div class="detail-panel-sub">${user.email || 'no-email'}</div>
+                </div>
+                <button class="back-btn" onclick="onSearchInput()">← Back to Search</button>
+            </div>
+
+            <div class="detail-stats">
+                <div class="detail-stat">
+                    <div class="detail-stat-label">Level 1</div>
+                    <div class="detail-stat-value" style="color:var(--accent-green)">${level1.length}</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-label">Level 2</div>
+                    <div class="detail-stat-value" style="color:var(--accent-blue)">${level2.length}</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-label">Level 3</div>
+                    <div class="detail-stat-value" style="color:var(--accent-purple)">${level3.length}</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-label">Bonus Earned</div>
+                    <div class="detail-stat-value" style="color:var(--accent-gold)">$${bonuses.reduce((s, b) => s + (Number(b.amount) || 0), 0).toFixed(2)}</div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                <button class="back-btn" style="background:rgba(0,230,118,0.1);border-color:rgba(0,230,118,0.3);color:var(--accent-green);" onclick="filterDetail('all',this)">All (${level1.length + level2.length + level3.length})</button>
+                <button class="back-btn" onclick="filterDetail('1',this)">Level 1 (${level1.length})</button>
+                <button class="back-btn" onclick="filterDetail('2',this)">Level 2 (${level2.length})</button>
+                <button class="back-btn" onclick="filterDetail('3',this)">Level 3 (${level3.length})</button>
+            </div>
+
+            <div class="referrals-list" id="detailReferralsList">
+                <div class="empty-state">Loading deposits...</div>
+            </div>
+        </div>
+    `;
+
+    // Build the combined list of downlines with level labels
+    const downlinesWithLevel = [
+        ...level1.map(u => ({ user: u, level: 1 })),
+        ...level2.map(u => ({ user: u, level: 2 })),
+        ...level3.map(u => ({ user: u, level: 3 }))
+    ];
+
+    // Store on window so filter buttons can use it
+    window._downlinesWithLevel = downlinesWithLevel;
+    window._viewerUid = userId;
+
+    renderDetailList('all');
+};
+
+window.filterDetail = function(levelFilter, btn) {
+    // Update active style
+    document.querySelectorAll('.detail-panel .back-btn').forEach(b => {
+        b.style.background = '';
+        b.style.borderColor = '';
+        b.style.color = '';
+    });
+    btn.style.background = 'rgba(0,230,118,0.1)';
+    btn.style.borderColor = 'rgba(0,230,118,0.3)';
+    btn.style.color = 'var(--accent-green)';
+
+    renderDetailList(levelFilter);
+};
+
+let _detailCache = {};   // uid -> totalDeposits
+
+async function renderDetailList(levelFilter) {
+    const list = document.getElementById('detailReferralsList');
+    const all = window._downlinesWithLevel || [];
+    const viewerUid = window._viewerUid;
+
+    let filtered = all;
+    if (levelFilter !== 'all') {
+        filtered = all.filter(x => String(x.level) === String(levelFilter));
+    }
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state">No referrals in this level</div>`;
+        return;
+    }
+
+    list.innerHTML = `<div class="empty-state">Loading deposits...</div>`;
+
+    // Fetch deposit totals for each downline (cache)
+    for (const item of filtered) {
+        const u = item.user;
+        if (_detailCache[u.id] === undefined) {
+            try {
+                // Sum deposits from deposits collection where uid == u.id AND status == approved
+                // Fall back to totalDeposits on user doc
+                const depositsQuery = collection(db, 'deposits');
+                const snap = await getDocs(depositsQuery);
+                let total = 0;
+                snap.forEach(d => {
+                    const dd = d.data();
+                    if (dd.uid === u.id && (dd.status === 'approved' || dd.status === 'completed')) {
+                        total += Number(dd.amount) || 0;
+                    }
+                });
+                // If no deposits found, fall back to wallet field
+                if (total === 0 && u.totalDeposits) total = Number(u.totalDeposits) || 0;
+                _detailCache[u.id] = total;
+            } catch (err) {
+                console.error('Deposit sum error for', u.id, err);
+                _detailCache[u.id] = Number(u.totalDeposits) || 0;
+            }
+        }
+    }
+
+    // Also fetch bonus amounts for each downline (bonus earned by viewer FROM this downline)
+    const bonusesByDownline = {};
+    allReferralBonuses.forEach(b => {
+        if (b.referrerUid === viewerUid && b.uid) {
+            bonusesByDownline[b.uid] = (bonusesByDownline[b.uid] || 0) + (Number(b.amount) || 0);
+        }
+    });
+
+    // Render
+    list.innerHTML = '';
+    filtered.forEach(item => {
+        const u = item.user;
+        const totalDep = _detailCache[u.id] || 0;
+        const bonusFrom = bonusesByDownline[u.id] || 0;
+
+        const card = document.createElement('div');
+        card.className = `referral-card level-${item.level}`;
+        card.innerHTML = `
+            <div class="referral-header">
+                <div class="referral-user">
+                    <div class="referral-avatar">${(u.username || 'U').charAt(0).toUpperCase()}</div>
+                    <div class="referral-info">
+                        <div class="referral-name">${u.username || 'Unknown'}</div>
+                        <div class="referral-email">${u.email || 'no-email'}</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="referral-amount">$${totalDep.toFixed(2)}</div>
+                    <div style="font-size:0.65rem;color:var(--text-muted);">Total Deposited</div>
+                    <span class="referral-level level-${item.level}">Level ${item.level}</span>
+                </div>
+            </div>
+            <div class="referral-details">
+                <span>Bonus Paid to Viewer: <strong>$${bonusFrom.toFixed(2)}</strong></span>
+                <span>Joined: <strong>${formatDate(u.createdAt)}</strong></span>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+/* ─────────────────────────── AUTH ─────────────────────────── */
+onAuthStateChanged(auth, async (user) => {
+    if (user && sessionStorage.getItem('grovia_admin') === 'true') {
+        document.getElementById('adminEmail').textContent = user.email;
+        await loadAll();
+    } else {
+        location.href = 'admin-login.html';
+    }
+});
+</script>
+</body>
+</html>
