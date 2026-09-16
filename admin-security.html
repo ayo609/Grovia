@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Center - Grovia Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-elevated: #22222e;
+            --accent-red: #ff4444;
+            --accent-red-dark: #cc0000;
+            --accent-gold: #ffd700;
+            --accent-green: #00e676;
+            --accent-blue: #29b6f6;
+            --accent-purple: #7c3aed;
+            --accent-orange: #ff9800;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --border: rgba(255,255,255,0.08);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s ease;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 50% 40% at 10% 10%, rgba(255,215,0,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 90%, rgba(124,58,237,0.03) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            position: sticky; top: 0; z-index: 200;
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px; height: 60px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-mark {
+            width: 36px; height: 36px; border-radius: 9px;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+            display: grid; place-items: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: white;
+        }
+        .logo-name {
+            font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .admin-email { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+        .logout-btn {
+            padding: 6px 16px; border-radius: 40px; border: 1px solid rgba(255,68,68,0.4);
+            background: transparent; color: var(--accent-red); font-family: var(--font-body);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+        }
+        .logout-btn:hover { background: rgba(255,68,68,0.1); }
+
+        .main { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 24px 16px 0; }
+
+        /* PIN Overlay */
+        .pin-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .pin-overlay.hidden { display: none; }
+        .pin-container {
+            background: var(--bg-elevated);
+            border: 2px solid var(--accent-gold);
+            border-radius: var(--radius-lg);
+            padding: 30px; width: 100%; max-width: 350px; text-align: center;
+        }
+        .pin-icon { font-size: 3rem; margin-bottom: 15px; }
+        .pin-title {
+            font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+            color: var(--accent-gold); margin-bottom: 5px;
+        }
+        .pin-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px; }
+        .pin-dots { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .pin-dot {
+            width: 15px; height: 15px; border-radius: 50%;
+            border: 2px solid var(--text-muted); transition: var(--transition);
+        }
+        .pin-dot.filled {
+            background: var(--accent-gold); border-color: var(--accent-gold);
+            box-shadow: 0 0 10px rgba(255,215,0,0.5);
+        }
+        .pin-dot.error {
+            border-color: var(--accent-red); background: var(--accent-red);
+            animation: shake 0.3s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .pin-key {
+            padding: 18px; background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text-primary);
+            font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+            cursor: pointer; transition: var(--transition);
+        }
+        .pin-key:hover { background: var(--bg-elevated); border-color: var(--accent-gold); }
+        .pin-key:active { transform: scale(0.95); }
+        .pin-key.clear { color: var(--accent-red); font-size: 0.8rem; font-weight: 600; }
+        .pin-key.empty { background: transparent; border: none; cursor: default; }
+        .pin-error { color: var(--accent-red); font-size: 0.8rem; margin-top: 10px; display: none; }
+        .pin-error.show { display: block; }
+
+        /* ══════ TABS ══════ */
+        .tabs-container {
+            display: flex; gap: 6px; overflow-x: auto; margin-bottom: 20px;
+            padding-bottom: 6px; scrollbar-width: none;
+        }
+        .tabs-container::-webkit-scrollbar { display: none; }
+        .tab {
+            padding: 11px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .tab:hover { border-color: var(--accent-gold); color: var(--text-primary); }
+        .tab.active {
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            color: #0a0a0f;
+            border-color: transparent;
+        }
+        .tab-icon { font-size: 1rem; }
+
+        .tab-panel { display: none; animation: fadeIn 0.25s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ══════ SECTION ══════ */
+        .panel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .panel-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--accent-gold);
+        }
+
+        /* ══════ INPUTS ══════ */
+        .form-group { margin-bottom: 14px; }
+        .form-label {
+            display: block; font-size: 0.72rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-muted); margin-bottom: 6px;
+        }
+        .form-input, .form-select {
+            width: 100%; padding: 12px 14px; background: var(--bg-secondary);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            color: var(--text-primary); font-family: var(--font-body);
+            font-size: 0.9rem; outline: none; transition: var(--transition);
+        }
+        .form-input:focus, .form-select:focus { border-color: var(--accent-gold); }
+        .form-input::placeholder { color: var(--text-muted); }
+
+        .search-bar {
+            display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .search-bar .form-input { flex: 1; min-width: 200px; }
+
+        .btn {
+            padding: 12px 20px;
+            border: none; border-radius: var(--radius-sm);
+            font-family: var(--font-body); font-weight: 600;
+            font-size: 0.85rem; cursor: pointer; transition: var(--transition);
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            white-space: nowrap;
+        }
+        .btn-gold { background: linear-gradient(135deg, var(--accent-gold), #ff9800); color: #0a0a0f; }
+        .btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-green { background: var(--accent-green); color: #0a0a0f; }
+        .btn-green:hover { opacity: 0.9; }
+        .btn-red { background: rgba(255,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(255,68,68,0.3); }
+        .btn-red:hover { background: var(--accent-red); color: white; }
+        .btn-blue { background: rgba(41,182,246,0.15); color: var(--accent-blue); border: 1px solid rgba(41,182,246,0.3); }
+        .btn-blue:hover { background: var(--accent-blue); color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ══════ FILTER PILLS ══════ */
+        .filter-pills {
+            display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+        }
+        .pill {
+            padding: 7px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .pill:hover { border-color: var(--accent-gold); }
+        .pill.active {
+            background: linear-gradient(135deg, var(--accent-gold), #ff9800);
+            color: #0a0a0f;
+            border-color: transparent;
+        }
+
+        /* ══════ TABLE ══════ */
+        .table-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 620px;
+        }
+        thead tr { border-bottom: 1px solid var(--border); }
+        th {
+            padding: 12px 14px; font-size: 0.65rem; font-weight: 700;
+            color: var(--text-muted); text-align: left;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        td {
+            padding: 12px 14px; font-size: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: var(--bg-elevated); }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 9px; border-radius: 12px;
+            font-size: 0.65rem; font-weight: 700;
+            text-transform: capitalize;
+        }
+        .badge.deposit { background: rgba(0,230,118,0.15); color: var(--accent-green); }
+        .badge.withdrawal { background: rgba(255,193,7,0.15); color: var(--accent-gold); }
+        .badge.investment { background: rgba(41,182,246,0.15); color: var(--accent-blue); }
+        .badge.funding { background: rgba(0,230,118,0.15); color: var(--accent-green); }
+        .badge.deduction { background: rgba(255,68,68,0.15); color: var(--accent-red); }
+        .badge.pending { background: rgba(255,193,7,0.15); color: var(--accent-gold); }
+        .badge.approved { background: rgba(0,230,118,0.15); color: var(--accent-green); }
+        .badge.completed { background: rgba(0,230,118,0.15); color: var(--accent-green); }
+        .badge.rejected { background: rgba(255,68,68,0.15); color: var(--accent-red); }
+        .badge.active { background: rgba(41,182,246,0.15); color: var(--accent-blue); }
+
+        .amount-cell { font-family: var(--font-display); font-weight: 700; }
+        .amount-cell.green { color: var(--accent-green); }
+        .amount-cell.red { color: var(--accent-red); }
+        .amount-cell.gold { color: var(--accent-gold); }
+
+        .icon-btn {
+            padding: 6px 10px; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 600;
+            cursor: pointer; border: none;
+            transition: var(--transition);
+            font-family: var(--font-body);
+        }
+        .icon-btn.del {
+            background: rgba(255,68,68,0.15); color: var(--accent-red);
+            border: 1px solid rgba(255,68,68,0.3);
+        }
+        .icon-btn.del:hover { background: var(--accent-red); color: white; }
+        .icon-btn.edit {
+            background: rgba(41,182,246,0.15); color: var(--accent-blue);
+            border: 1px solid rgba(41,182,246,0.3);
+        }
+        .icon-btn.edit:hover { background: var(--accent-blue); color: white; }
+        .icon-btn.credit {
+            background: rgba(0,230,118,0.15); color: var(--accent-green);
+            border: 1px solid rgba(0,230,118,0.3);
+        }
+        .icon-btn.credit:hover { background: var(--accent-green); color: #0a0a0f; }
+
+        .empty-row td {
+            text-align: center; color: var(--text-muted);
+            padding: 30px; font-size: 0.85rem;
+        }
+
+        /* ══════ USER DETAILS PANEL ══════ */
+        .user-detail-panel {
+            background: var(--bg-elevated);
+            border: 1px solid var(--accent-gold);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-top: 16px;
+        }
+        .user-detail-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .detail-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+        }
+        .detail-item-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+        .detail-item-value {
+            font-size: 0.88rem;
+            font-weight: 600;
+            word-break: break-all;
+        }
+        .detail-item-value.green { color: var(--accent-green); }
+        .detail-item-value.gold { color: var(--accent-gold); }
+        .detail-item-value.blue { color: var(--accent-blue); }
+        .detail-item-value.purple { color: var(--accent-purple); }
+        .detail-item-value.red { color: var(--accent-red); }
+
+        /* ══════ MODALS ══════ */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(6px);
+            z-index: 500; display: none;
+            align-items: center; justify-content: center; padding: 16px;
+        }
+        .overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-elevated); border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 26px; width: 100%; max-width: 420px;
+            position: relative; animation: fadeUp 0.25s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        @keyframes fadeUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute; top: 14px; right: 14px;
+            background: none; border: none;
+            color: var(--text-muted); font-size: 1.3rem;
+            cursor: pointer;
+        }
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem; font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--accent-gold);
+            text-align: center;
+        }
+        .modal-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center; line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .modal-text strong { color: var(--text-primary); }
+        .modal-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px; margin-top: 20px;
+        }
+        .btn-modal {
+            padding: 11px; border-radius: var(--radius-sm);
+            font-family: var(--font-body); font-weight: 600;
+            font-size: 0.85rem; cursor: pointer;
+            border: none; transition: var(--transition);
+        }
+        .btn-modal.cancel {
+            background: var(--bg-secondary); color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-modal.cancel:hover { background: var(--bg-card); color: var(--text-primary); }
+        .btn-modal.confirm {
+            background: var(--accent-green); color: #0a0a0f;
+        }
+        .btn-modal.danger {
+            background: rgba(255,68,68,0.15); color: var(--accent-red);
+            border: 1px solid rgba(255,68,68,0.3);
+        }
+        .btn-modal.danger:hover { background: var(--accent-red); color: white; }
+
+        /* ══════ BOTTOM NAV ══════ */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+            background: rgba(10,10,15,0.95); backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-around;
+            z-index: 200; overflow-x: auto; scrollbar-width: none;
+        }
+        .bottom-nav::-webkit-scrollbar { display: none; }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            background: none; border: none; color: var(--text-muted);
+            cursor: pointer; transition: var(--transition);
+            padding: 4px 10px; text-decoration: none;
+            font-family: var(--font-body); flex-shrink: 0; min-width: 55px;
+        }
+        .nav-item:hover, .nav-item.active { color: var(--accent-red); }
+        .nav-item svg { width: 20px; height: 20px; }
+        .nav-label { font-size: 0.58rem; font-weight: 600; }
+
+        /* ══════ TOASTS ══════ */
+        .toasts {
+            position: fixed; bottom: 76px; right: 16px;
+            z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+        }
+        .toast {
+            background: var(--bg-elevated); border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 13px 16px;
+            min-width: 280px; max-width: 360px;
+            display: flex; gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast::before {
+            content: ''; position: absolute;
+            left: 0; top: 0; bottom: 0; width: 3px;
+        }
+        .toast.success::before { background: var(--accent-green); }
+        .toast.error::before { background: var(--accent-red); }
+        .toast.info::before { background: var(--accent-blue); }
+        .toast-icon { font-size: 1rem; flex-shrink: 0; }
+        .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .toast-msg { font-size: 0.78rem; color: var(--text-secondary); }
+
+        @media (max-width: 600px) {
+            .main { padding: 16px 12px 0; }
+            .logo-name { display: none; }
+            .admin-email { display: none; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .nav-item { min-width: 45px; padding: 4px 6px; }
+            .search-bar { flex-direction: column; }
+            .search-bar .form-input { width: 100%; }
+            .search-bar .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- PIN Overlay -->
+<div class="pin-overlay" id="pinOverlay">
+    <div class="pin-container">
+        <div class="pin-icon">🔐</div>
+        <div class="pin-title">Security Verification</div>
+        <div class="pin-subtitle">Enter PIN to access security center</div>
+
+        <div class="pin-dots" id="pinDots">
+            <div class="pin-dot" id="dot1"></div>
+            <div class="pin-dot" id="dot2"></div>
+            <div class="pin-dot" id="dot3"></div>
+            <div class="pin-dot" id="dot4"></div>
+            <div class="pin-dot" id="dot5"></div>
+            <div class="pin-dot" id="dot6"></div>
+            <div class="pin-dot" id="dot7"></div>
+        </div>
+
+        <div class="pin-keypad">
+            <button class="pin-key" onclick="addPinDigit('1')">1</button>
+            <button class="pin-key" onclick="addPinDigit('2')">2</button>
+            <button class="pin-key" onclick="addPinDigit('3')">3</button>
+            <button class="pin-key" onclick="addPinDigit('4')">4</button>
+            <button class="pin-key" onclick="addPinDigit('5')">5</button>
+            <button class="pin-key" onclick="addPinDigit('6')">6</button>
+            <button class="pin-key" onclick="addPinDigit('7')">7</button>
+            <button class="pin-key" onclick="addPinDigit('8')">8</button>
+            <button class="pin-key" onclick="addPinDigit('9')">9</button>
+            <button class="pin-key empty"></button>
+            <button class="pin-key" onclick="addPinDigit('0')">0</button>
+            <button class="pin-key clear" onclick="clearPin()">CLEAR</button>
+        </div>
+
+        <div class="pin-error" id="pinError">Incorrect PIN. Please try again.</div>
+    </div>
+</div>
+
+<header class="header">
+    <div class="logo">
+        <div class="logo-mark">A</div>
+        <div class="logo-name">Admin Panel</div>
+    </div>
+    <div class="header-right">
+        <span class="admin-email" id="adminEmail">admin@grovia.com</span>
+        <button class="logout-btn" onclick="showLogout()">Logout</button>
+    </div>
+</header>
+
+<main class="main">
+    <!-- TABS -->
+    <div class="tabs-container">
+        <button class="tab active" data-tab="transactions" onclick="switchTab('transactions', this)">
+            <span class="tab-icon">🗑️</span> Delete Transactions
+        </button>
+        <button class="tab" data-tab="funds" onclick="switchTab('funds', this)">
+            <span class="tab-icon">💰</span> Fund/Deduct Users
+        </button>
+        <button class="tab" data-tab="date" onclick="switchTab('date', this)">
+            <span class="tab-icon">📅</span> Change Reg. Date
+        </button>
+        <button class="tab" data-tab="investments" onclick="switchTab('investments', this)">
+            <span class="tab-icon">📈</span> Edit Investments
+        </button>
+        <button class="tab" data-tab="userdetails" onclick="switchTab('userdetails', this)">
+            <span class="tab-icon">👤</span> View User
+        </button>
+    </div>
+
+    <!-- ══════════════ TAB 1: DELETE TRANSACTIONS ══════════════ -->
+    <div class="tab-panel active" id="panel-transactions">
+        <div class="panel-card">
+            <div class="panel-title">🗑️ Delete Transactions</div>
+
+            <div class="search-bar">
+                <input type="text" class="form-input" id="txSearch" placeholder="Search by user email or transaction ID...">
+                <button class="btn btn-gold" onclick="loadTransactions()">Search</button>
+            </div>
+
+            <div class="filter-pills">
+                <button class="pill active" data-txfilter="all" onclick="filterTx('all', this)">All</button>
+                <button class="pill" data-txfilter="deposit" onclick="filterTx('deposit', this)">Deposits</button>
+                <button class="pill" data-txfilter="withdrawal" onclick="filterTx('withdrawal', this)">Withdrawals</button>
+                <button class="pill" data-txfilter="investment" onclick="filterTx('investment', this)">Investments</button>
+                <button class="pill" data-txfilter="adminFunding" onclick="filterTx('adminFunding', this)">Admin Funding</button>
+                <button class="pill" data-txfilter="adminDeduction" onclick="filterTx('adminDeduction', this)">Admin Deduction</button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="txTableBody">
+                        <tr class="empty-row"><td colspan="6">Loading transactions...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ TAB 2: FUND/DEDUCT USERS ══════════════ -->
+    <div class="tab-panel" id="panel-funds">
+        <div class="panel-card">
+            <div class="panel-title">💰 Fund / Deduct Users</div>
+
+            <div class="form-group">
+                <label class="form-label">User Email</label>
+                <input type="email" class="form-input" id="fundUserEmail" placeholder="user@example.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Action</label>
+                <select class="form-select" id="fundAction" onchange="updateFundBtn()">
+                    <option value="add">Add Funds</option>
+                    <option value="deduct">Deduct Funds</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Wallet Type</label>
+                <select class="form-select" id="fundWallet">
+                    <option value="depositWallet">Deposit Wallet</option>
+                    <option value="withdrawalWallet">Withdrawal Wallet</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Amount (USD)</label>
+                <input type="number" class="form-input" id="fundAmount" placeholder="0.00" step="0.01" min="0.01">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Note (Optional)</label>
+                <input type="text" class="form-input" id="fundNote" placeholder="e.g. bonus, correction, etc.">
+            </div>
+
+            <button class="btn btn-green" id="fundSubmitBtn" style="width:100%" onclick="submitFund()">
+                ✓ Add Funds
+            </button>
+        </div>
+
+        <div class="panel-card">
+            <div class="panel-title">📜 Funding History</div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Wallet</th>
+                            <th>Amount</th>
+                            <th>Note</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="fundTableBody">
+                        <tr class="empty-row"><td colspan="7">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ TAB 3: CHANGE REGISTRATION DATE ══════════════ -->
+    <div class="tab-panel" id="panel-date">
+        <div class="panel-card">
+            <div class="panel-title">📅 Change Registration Date</div>
+
+            <div class="search-bar">
+                <input type="email" class="form-input" id="dateUserEmail" placeholder="user@example.com">
+                <button class="btn btn-gold" onclick="lookupUserForDate()">Search User</button>
+            </div>
+
+            <div id="dateResultArea"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════ TAB 4: EDIT INVESTMENTS ══════════════ -->
+    <div class="tab-panel" id="panel-investments">
+        <div class="panel-card">
+            <div class="panel-title">📈 Edit Investments</div>
+
+            <div class="search-bar">
+                <input type="email" class="form-input" id="invUserEmail" placeholder="user@example.com">
+                <button class="btn btn-gold" onclick="loadInvestments()">Search</button>
+            </div>
+
+            <div class="table-wrap" style="margin-top:14px">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Plan Amount</th>
+                            <th>Daily ROI</th>
+                            <th>Start Date</th>
+                            <th>ROI Count</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invTableBody">
+                        <tr class="empty-row"><td colspan="7">Search a user to see investments</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ TAB 5: VIEW USER DETAILS ══════════════ -->
+    <div class="tab-panel" id="panel-userdetails">
+        <div class="panel-card">
+            <div class="panel-title">👤 View User Details</div>
+
+            <div class="search-bar">
+                <input type="email" class="form-input" id="viewUserEmail" placeholder="user@example.com">
+                <button class="btn btn-gold" onclick="loadUserDetails()">Search</button>
+            </div>
+
+            <div id="userDetailArea"></div>
+        </div>
+    </div>
+
+</main>
+
+<nav class="bottom-nav">
+    <a href="admin-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Home</span>
+    </a>
+    <a href="admin-users.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="nav-label">Users</span>
+    </a>
+    <a href="admin-deposits.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h2m4 0h2m-8 4h6M5 10l1-7h12l1 7M5 10v10a2 2 0 002 2h10a2 2 0 002-2V10"/></svg>
+        <span class="nav-label">Deposits</span>
+    </a>
+    <a href="admin-withdrawals.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14h18M7 19h2m4 0h2m-8 4h6M5 14l-1-7h16l-1 7M5 14v-4a2 2 0 012-2h10a2 2 0 012 2v4"/></svg>
+        <span class="nav-label">Withdrawals</span>
+    </a>
+    <a href="admin-security.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="nav-label">Security</span>
+    </a>
+</nav>
+
+<!-- Generic Confirm Modal -->
+<div class="overlay" id="confirmOverlay">
+    <div class="modal">
+        <div class="modal-title" id="confirmTitle">Confirm</div>
+        <div class="modal-text" id="confirmText">Are you sure?</div>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closeConfirm()">Cancel</button>
+            <button class="btn-modal danger" id="confirmBtn" onclick="executeConfirm()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Investment Modal -->
+<div class="overlay" id="editInvOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeEditInv()">×</button>
+        <div class="modal-title">Edit Investment Start Date</div>
+        <div class="form-group">
+            <label class="form-label">New Start Date</label>
+            <input type="datetime-local" class="form-input" id="editInvStartDate">
+        </div>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closeEditInv()">Cancel</button>
+            <button class="btn-modal confirm" onclick="saveEditInv()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Credit ROI Modal -->
+<div class="overlay" id="creditRoiOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeCreditRoi()">×</button>
+        <div class="modal-title">Credit ROI</div>
+        <div class="form-group">
+            <label class="form-label">Number of Days to Credit</label>
+            <input type="number" class="form-input" id="roiDaysInput" value="1" min="1" step="1">
+        </div>
+        <div class="modal-text" id="roiCreditPreview">Amount: $0.00</div>
+        <div class="modal-btns">
+            <button class="btn-modal cancel" onclick="closeCreditRoi()">Cancel</button>
+            <button class="btn-modal confirm" onclick="executeCreditRoi()">Credit ROI</button>
+        </div>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc,
+    addDoc, serverTimestamp, query, where, increment
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCsgCJTBH1CS_0eim4R02XhNNFs96AHym8",
+    authDomain: "grovia-15266.firebaseapp.com",
+    projectId: "grovia-15266",
+    storageBucket: "grovia-15266.firebasestorage.app",
+    messagingSenderId: "330674853010",
+    appId: "1:330674853010:web:15a2cce632dd4528b8024b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const SECURITY_PIN = '0912006';
+let pinEntered = '';
+let isPinVerified = false;
+
+let allTransactions = [];
+let currentTxFilter = 'all';
+let pendingConfirmAction = null;
+let currentEditInvId = null;
+let currentCreditRoiPlan = null;
+
+/* ══════════════ TOAST ══════════════ */
+function toast(type, title, msg, dur = 4000) {
+    const box = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<div class="toast-icon">${type === 'success' ? '✓' : type === 'info' ? 'ℹ' : '✗'}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    box.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, dur);
+}
+
+function fmtDate(v) {
+    if (!v) return '—';
+    let d;
+    if (typeof v.toDate === 'function') d = v.toDate();
+    else if (v instanceof Date) d = v;
+    else return '—';
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ══════════════ LOGOUT ══════════════ */
+window.showLogout = () => {
+    if (confirm('Logout from admin panel?')) {
+        sessionStorage.removeItem('grovia_admin');
+        signOut(auth).then(() => location.href = 'admin-login.html');
+    }
+};
+
+/* ══════════════ PIN ══════════════ */
+window.addPinDigit = function(digit) {
+    if (pinEntered.length >= 7) return;
+    pinEntered += digit;
+    updatePinDots();
+    if (pinEntered.length === 7) verifyPin();
+};
+window.clearPin = function() {
+    pinEntered = '';
+    updatePinDots();
+    document.getElementById('pinError').classList.remove('show');
+};
+function updatePinDots() {
+    for (let i = 1; i <= 7; i++) {
+        const dot = document.getElementById('dot' + i);
+        if (i <= pinEntered.length) {
+            dot.classList.add('filled');
+            dot.classList.remove('error');
+        } else {
+            dot.classList.remove('filled');
+            dot.classList.remove('error');
+        }
+    }
+}
+function verifyPin() {
+    if (pinEntered === SECURITY_PIN) {
+        isPinVerified = true;
+        document.getElementById('pinOverlay').classList.add('hidden');
+        toast('success', 'Access Granted', 'Security center unlocked.');
+        loadTransactions();
+        loadFundingHistory();
+    } else {
+        document.getElementById('pinError').classList.add('show');
+        setTimeout(() => { pinEntered = ''; updatePinDots(); }, 500);
+    }
+}
+
+/* ══════════════ TABS ══════════════ */
+window.switchTab = function(name, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+};
+
+/* ══════════════ CONFIRM MODAL ══════════════ */
+window.openConfirm = function(title, text, btnText, action, danger = true) {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').innerHTML = text;
+    document.getElementById('confirmBtn').textContent = btnText;
+    document.getElementById('confirmBtn').className = 'btn-modal ' + (danger ? 'danger' : 'confirm');
+    pendingConfirmAction = action;
+    document.getElementById('confirmOverlay').classList.add('show');
+};
+window.closeConfirm = function() {
+    document.getElementById('confirmOverlay').classList.remove('show');
+    pendingConfirmAction = null;
+};
+window.executeConfirm = async function() {
+    if (typeof pendingConfirmAction === 'function') {
+        await pendingConfirmAction();
+    }
+    closeConfirm();
+};
+
+/* ══════════════ TAB 1: TRANSACTIONS ══════════════ */
+async function loadTransactions() {
+    const tbody = document.getElementById('txTableBody');
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Loading...</td></tr>';
+    allTransactions = [];
+
+    const sources = [
+        { coll: 'deposits', type: 'deposit' },
+        { coll: 'withdrawals', type: 'withdrawal' },
+        { coll: 'plans', type: 'investment' },
+        { coll: 'adminFundings', type: 'adminFunding' },
+        { coll: 'adminDeductions', type: 'adminDeduction' }
+    ];
+
+    try {
+        for (const src of sources) {
+            const snap = await getDocs(collection(db, src.coll));
+            snap.forEach(d => {
+                const data = d.data();
+                allTransactions.push({
+                    id: d.id,
+                    collection: src.coll,
+                    type: src.type,
+                    email: data.email || data.userEmail || '',
+                    username: data.username || '',
+                    amount: Number(data.amount) || 0,
+                    status: data.status || 'pending',
+                    createdAt: data.createdAt
+                });
+            });
+        }
+        renderTransactions();
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Error loading transactions</td></tr>';
+    }
+}
+
+function renderTransactions() {
+    const tbody = document.getElementById('txTableBody');
+    const search = (document.getElementById('txSearch').value || '').toLowerCase().trim();
+
+    let filtered = allTransactions.filter(t => {
+        const matchFilter = currentTxFilter === 'all' || t.type === currentTxFilter;
+        const matchSearch = !search ||
+            (t.email || '').toLowerCase().includes(search) ||
+            (t.id || '').toLowerCase().includes(search) ||
+            (t.username || '').toLowerCase().includes(search);
+        return matchFilter && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No transactions found</td></tr>';
+        return;
+    }
+
+    // Sort newest first
+    filtered.sort((a, b) => {
+        const da = a.createdAt?.toDate?.() || new Date(0);
+        const db_ = b.createdAt?.toDate?.() || new Date(0);
+        return db_ - da;
+    });
+
+    tbody.innerHTML = '';
+    filtered.slice(0, 200).forEach(t => {
+        const tr = document.createElement('tr');
+        const amtClass = ['deposit','adminFunding'].includes(t.type) ? 'green' : 'red';
+        tr.innerHTML = `
+            <td><span class="badge ${t.type}">${t.type}</span></td>
+            <td>
+                <div style="font-size:0.8rem">${t.email || t.username || 'Unknown'}</div>
+                <div style="font-size:0.65rem;color:var(--text-muted);font-family:monospace">${t.id.substring(0, 12)}…</div>
+            </td>
+            <td class="amount-cell ${amtClass}">$${t.amount.toFixed(2)}</td>
+            <td><span class="badge ${t.status}">${t.status}</span></td>
+            <td style="font-size:0.72rem;color:var(--text-muted)">${fmtDate(t.createdAt)}</td>
+            <td><button class="icon-btn del" onclick="deleteTransaction('${t.collection}','${t.id}','${t.type}','${t.email || t.username || ''}')">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.filterTx = function(f, btn) {
+    currentTxFilter = f;
+    document.querySelectorAll('[data-txfilter]').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    renderTransactions();
+};
+
+window.deleteTransaction = function(coll, id, type, who) {
+    openConfirm(
+        'Delete Transaction',
+        `Permanently delete this <strong>${type}</strong> for <strong>${who || 'user'}</strong>?<br><br>This will remove it from the database and it will no longer show in the admin panel.`,
+        'Delete Permanently',
+        async () => {
+            try {
+                await deleteDoc(doc(db, coll, id));
+                toast('success', 'Deleted', `${type} transaction deleted successfully.`);
+                loadTransactions();
+            } catch (e) {
+                console.error(e);
+                toast('error', 'Failed', 'Could not delete transaction.');
+            }
+        }
+    );
+};
+
+document.getElementById('txSearch').addEventListener('input', renderTransactions);
+
+/* ══════════════ TAB 2: FUND/DEDUCT ══════════════ */
+window.updateFundBtn = function() {
+    const action = document.getElementById('fundAction').value;
+    const btn = document.getElementById('fundSubmitBtn');
+    if (action === 'add') {
+        btn.textContent = '✓ Add Funds';
+        btn.className = 'btn btn-green';
+        btn.style.width = '100%';
+    } else {
+        btn.textContent = '✗ Deduct Funds';
+        btn.className = 'btn btn-red';
+        btn.style.width = '100%';
+    }
+};
+
+window.submitFund = async function() {
+    const email = document.getElementById('fundUserEmail').value.trim().toLowerCase();
+    const action = document.getElementById('fundAction').value;
+    const wallet = document.getElementById('fundWallet').value;
+    const amount = parseFloat(document.getElementById('fundAmount').value);
+    const note = document.getElementById('fundNote').value.trim();
+
+    if (!email) { toast('error', 'Missing Email', 'Please enter the user email.'); return; }
+    if (!amount || amount <= 0) { toast('error', 'Invalid Amount', 'Please enter a valid amount.'); return; }
+
+    const btn = document.getElementById('fundSubmitBtn');
+    btn.disabled = true;
+
+    try {
+        // Find user
+        const q = query(collection(db, 'users'), where('email', '==', email));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            toast('error', 'User Not Found', 'No user with that email.');
+            btn.disabled = false;
+            return;
+        }
+
+        const userDoc = snap.docs[0];
+        const uid = userDoc.id;
+
+        if (action === 'deduct') {
+            const currentBal = Number(userDoc.data()[wallet]) || 0;
+            if (amount > currentBal) {
+                toast('error', 'Insufficient', `Only $${currentBal.toFixed(2)} available.`);
+                btn.disabled = false;
+                return;
+            }
+        }
+
+        // Update wallet
+        const updateAmt = action === 'add' ? amount : -amount;
+        await updateDoc(doc(db, 'users', uid), { [wallet]: increment(updateAmt) });
+
+        // Record in adminFundings or adminDeductions
+        const coll = action === 'add' ? 'adminFundings' : 'adminDeductions';
+        await addDoc(collection(db, coll), {
+            uid,
+            email,
+            username: userDoc.data().username || '',
+            amount,
+            wallet,
+            note,
+            adminEmail: auth.currentUser?.email || '',
+            createdAt: serverTimestamp()
+        });
+
+        toast('success', action === 'add' ? 'Funds Added' : 'Funds Deducted',
+              `$${amount.toFixed(2)} ${action === 'add' ? 'added to' : 'deducted from'} ${email}'s ${wallet === 'depositWallet' ? 'deposit' : 'withdrawal'} wallet.`);
+
+        // Reset
+        document.getElementById('fundUserEmail').value = '';
+        document.getElementById('fundAmount').value = '';
+        document.getElementById('fundNote').value = '';
+
+        loadFundingHistory();
+        loadTransactions();
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Failed', 'Could not complete operation.');
+    } finally {
+        btn.disabled = false;
+    }
+};
+
+async function loadFundingHistory() {
+    const tbody = document.getElementById('fundTableBody');
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading...</td></tr>';
+
+    try {
+        const fundings = [];
+        const s1 = await getDocs(collection(db, 'adminFundings'));
+        s1.forEach(d => fundings.push({ id: d.id, coll: 'adminFundings', action: 'add', ...d.data() }));
+        const s2 = await getDocs(collection(db, 'adminDeductions'));
+        s2.forEach(d => fundings.push({ id: d.id, coll: 'adminDeductions', action: 'deduct', ...d.data() }));
+
+        fundings.sort((a, b) => {
+            const da = a.createdAt?.toDate?.() || new Date(0);
+            const db_ = b.createdAt?.toDate?.() || new Date(0);
+            return db_ - da;
+        });
+
+        if (fundings.length === 0) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No funding history yet</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        fundings.slice(0, 100).forEach(f => {
+            const tr = document.createElement('tr');
+            const walletLabel = f.wallet === 'withdrawalWallet' ? 'Withdrawal' : 'Deposit';
+            const amtClass = f.action === 'add' ? 'green' : 'red';
+            tr.innerHTML = `
+                <td style="font-size:0.78rem">${f.email || f.username || '—'}</td>
+                <td><span class="badge ${f.action === 'add' ? 'funding' : 'deduction'}">${f.action === 'add' ? 'Funded' : 'Deducted'}</span></td>
+                <td>${walletLabel}</td>
+                <td class="amount-cell ${amtClass}">${f.action === 'add' ? '+' : '-'}$${Number(f.amount || 0).toFixed(2)}</td>
+                <td style="font-size:0.75rem;color:var(--text-muted)">${f.note || '—'}</td>
+                <td style="font-size:0.72rem;color:var(--text-muted)">${fmtDate(f.createdAt)}</td>
+                <td><button class="icon-btn del" onclick="deleteFunding('${f.coll}','${f.id}','${f.email || ''}')">Delete</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Error loading history</td></tr>';
+    }
+}
+
+window.deleteFunding = function(coll, id, email) {
+    openConfirm(
+        'Delete Funding Record',
+        `Remove this ${coll === 'adminFundings' ? 'funding' : 'deduction'} record for <strong>${email}</strong>?`,
+        'Delete',
+        async () => {
+            try {
+                await deleteDoc(doc(db, coll, id));
+                toast('success', 'Deleted', 'Record deleted.');
+                loadFundingHistory();
+                loadTransactions();
+            } catch (e) {
+                toast('error', 'Failed', 'Could not delete.');
+            }
+        }
+    );
+};
+
+/* ══════════════ TAB 3: REGISTRATION DATE ══════════════ */
+window.lookupUserForDate = async function() {
+    const email = document.getElementById('dateUserEmail').value.trim().toLowerCase();
+    const area = document.getElementById('dateResultArea');
+
+    if (!email) { toast('error', 'Missing Email', 'Please enter user email.'); return; }
+
+    area.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>';
+
+    try {
+        const q = query(collection(db, 'users'), where('email', '==', email));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            area.innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent-red)">User not found</div>';
+            return;
+        }
+        const user = snap.docs[0];
+        const data = user.data();
+
+        area.innerHTML = `
+            <div class="user-detail-panel">
+                <div class="user-detail-title">📅 ${data.username || email}</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-item-label">Current Registration Date</div>
+                        <div class="detail-item-value">${fmtDate(data.createdAt)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Email</div>
+                        <div class="detail-item-value">${data.email}</div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:16px">
+                    <label class="form-label">New Registration Date & Time</label>
+                    <input type="datetime-local" class="form-input" id="newRegDate">
+                </div>
+                <button class="btn btn-green" style="width:100%" onclick="saveRegDate('${user.id}')">Update Registration Date</button>
+            </div>
+        `;
+    } catch (e) {
+        console.error(e);
+        area.innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent-red)">Error loading user</div>';
+    }
+};
+
+window.saveRegDate = async function(uid) {
+    const v = document.getElementById('newRegDate').value;
+    if (!v) { toast('error', 'Missing Date', 'Please select a date.'); return; }
+    const newDate = new Date(v);
+
+    openConfirm(
+        'Change Registration Date',
+        `Change this user's registration date to <strong>${newDate.toLocaleString()}</strong>?`,
+        'Update',
+        async () => {
+            try {
+                await updateDoc(doc(db, 'users', uid), { createdAt: newDate });
+                toast('success', 'Updated', 'Registration date updated successfully.');
+                document.getElementById('dateResultArea').innerHTML = '';
+                document.getElementById('dateUserEmail').value = '';
+            } catch (e) {
+                console.error(e);
+                toast('error', 'Failed', 'Could not update date.');
+            }
+        },
+        false
+    );
+};
+
+/* ══════════════ TAB 4: INVESTMENTS ══════════════ */
+window.loadInvestments = async function() {
+    const email = document.getElementById('invUserEmail').value.trim().toLowerCase();
+    const tbody = document.getElementById('invTableBody');
+
+    if (!email) { toast('error', 'Missing Email', 'Please enter user email.'); return; }
+
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Loading...</td></tr>';
+
+    try {
+        const uQ = query(collection(db, 'users'), where('email', '==', email));
+        const uSnap = await getDocs(uQ);
+        if (uSnap.empty) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="7">User not found</td></tr>';
+            return;
+        }
+        const uid = uSnap.docs[0].id;
+        const username = uSnap.docs[0].data().username || email;
+
+        const pQ = query(collection(db, 'plans'), where('uid', '==', uid));
+        const pSnap = await getDocs(pQ);
+
+        if (pSnap.empty) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No investments for this user</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        pSnap.forEach(d => {
+            const p = d.data();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-size:0.78rem">${username}</td>
+                <td class="amount-cell gold">$${Number(p.amount || 0).toFixed(2)}</td>
+                <td class="amount-cell green">$${Number(p.dailyROI || 0).toFixed(2)}</td>
+                <td style="font-size:0.72rem">${fmtDate(p.startDate)}</td>
+                <td>${p.roiCount || 0}</td>
+                <td><span class="badge ${p.status || 'active'}">${p.status || 'active'}</span></td>
+                <td>
+                    <button class="icon-btn edit" onclick="openEditInv('${d.id}')">Edit Date</button>
+                    <button class="icon-btn credit" onclick="openCreditRoi('${d.id}','${username}',${p.dailyROI || 0},${p.amount || 0})">Credit ROI</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Error loading</td></tr>';
+    }
+};
+
+window.openEditInv = async function(planId) {
+    currentEditInvId = planId;
+    try {
+        const snap = await getDoc(doc(db, 'plans', planId));
+        if (snap.exists()) {
+            const d = snap.data();
+            const sd = d.startDate?.toDate?.() || new Date();
+            // Format for datetime-local input
+            const iso = sd.toISOString().slice(0, 16);
+            document.getElementById('editInvStartDate').value = iso;
+        }
+        document.getElementById('editInvOverlay').classList.add('show');
+    } catch (e) {
+        toast('error', 'Error', 'Could not load plan.');
+    }
+};
+
+window.closeEditInv = function() {
+    document.getElementById('editInvOverlay').classList.remove('show');
+    currentEditInvId = null;
+};
+
+window.saveEditInv = async function() {
+    const v = document.getElementById('editInvStartDate').value;
+    if (!v || !currentEditInvId) return;
+    const newDate = new Date(v);
+    try {
+        await updateDoc(doc(db, 'plans', currentEditInvId), { startDate: newDate });
+        toast('success', 'Updated', 'Investment start date changed.');
+        closeEditInv();
+        loadInvestments();
+    } catch (e) {
+        toast('error', 'Failed', 'Could not update.');
+    }
+};
+
+window.openCreditRoi = function(planId, username, dailyROI, planAmount) {
+    currentCreditRoiPlan = { planId, username, dailyROI, planAmount };
+    document.getElementById('roiDaysInput').value = 1;
+    updateRoiPreview();
+    document.getElementById('creditRoiOverlay').classList.add('show');
+};
+
+document.getElementById('roiDaysInput')?.addEventListener('input', updateRoiPreview);
+
+function updateRoiPreview() {
+    if (!currentCreditRoiPlan) return;
+    const days = Number(document.getElementById('roiDaysInput').value) || 1;
+    const total = days * currentCreditRoiPlan.dailyROI;
+    document.getElementById('roiCreditPreview').innerHTML =
+        `Plan: <strong>${currentCreditRoiPlan.username}</strong><br>Daily ROI: <strong>$${currentCreditRoiPlan.dailyROI.toFixed(2)}</strong><br>Total Credit: <strong style="color:var(--accent-green)">$${total.toFixed(2)}</strong>`;
+}
+
+window.closeCreditRoi = function() {
+    document.getElementById('creditRoiOverlay').classList.remove('show');
+    currentCreditRoiPlan = null;
+};
+
+window.executeCreditRoi = async function() {
+    if (!currentCreditRoiPlan) return;
+    const days = Number(document.getElementById('roiDaysInput').value) || 1;
+    if (days < 1) { toast('error', 'Invalid', 'Days must be at least 1.'); return; }
+
+    const planId = currentCreditRoiPlan.planId;
+    const total = days * currentCreditRoiPlan.dailyROI;
+
+    try {
+        const planSnap = await getDoc(doc(db, 'plans', planId));
+        if (!planSnap.exists()) { toast('error', 'Error', 'Plan not found.'); return; }
+        const plan = planSnap.data();
+        const uid = plan.uid;
+
+        // Credit user's withdrawal wallet
+        await updateDoc(doc(db, 'users', uid), {
+            withdrawalWallet: increment(total),
+            totalEarnings: increment(total)
+        });
+
+        // Update plan ROI count
+        const newCount = (Number(plan.roiCount) || 0) + days;
+        await updateDoc(doc(db, 'plans', planId), { roiCount: newCount });
+
+        // Add ROI record
+        await addDoc(collection(db, 'roiEarnings'), {
+            uid,
+            planName: plan.planName || 'plan',
+            amount: total,
+            days,
+            status: 'credited',
+            adminCredit: true,
+            creditedBy: auth.currentUser?.email || '',
+            createdAt: serverTimestamp()
+        });
+
+        toast('success', 'ROI Credited', `$${total.toFixed(2)} credited to user.`);
+        closeCreditRoi();
+        loadInvestments();
+        loadTransactions();
+    } catch (e) {
+        console.error(e);
+        toast('error', 'Failed', 'Could not credit ROI.');
+    }
+};
+
+/* ══════════════ TAB 5: USER DETAILS ══════════════ */
+window.loadUserDetails = async function() {
+    const email = document.getElementById('viewUserEmail').value.trim().toLowerCase();
+    const area = document.getElementById('userDetailArea');
+    if (!email) { toast('error', 'Missing Email', 'Please enter user email.'); return; }
+
+    area.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">Loading...</div>';
+
+    try {
+        const q = query(collection(db, 'users'), where('email', '==', email));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            area.innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent-red)">User not found</div>';
+            return;
+        }
+        const u = snap.docs[0].data();
+
+        area.innerHTML = `
+            <div class="user-detail-panel">
+                <div class="user-detail-title">👤 ${u.username || 'User'}</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-item-label">Email</div>
+                        <div class="detail-item-value blue">${u.email || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Phone</div>
+                        <div class="detail-item-value">${u.phone || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Referral Code</div>
+                        <div class="detail-item-value gold">${u.referralCode || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">IP Address</div>
+                        <div class="detail-item-value">${u.ipAddress || '—'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Deposit Wallet</div>
+                        <div class="detail-item-value green">$${Number(u.depositWallet || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Withdrawal Wallet</div>
+                        <div class="detail-item-value gold">$${Number(u.withdrawalWallet || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Total Deposits</div>
+                        <div class="detail-item-value green">$${Number(u.totalDeposits || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Total Withdrawals</div>
+                        <div class="detail-item-value red">$${Number(u.totalWithdrawals || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Referral Earnings</div>
+                        <div class="detail-item-value purple">$${Number(u.referralEarnings || 0).toFixed(2)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-item-label">Status</div>
+                        <div class="detail-item-value ${u.status === 'suspended' ? 'red' : 'green'}">${u.status || 'active'}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error(e);
+        area.innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent-red)">Error loading user</div>';
+    }
+};
+
+/* ══════════════ AUTH ══════════════ */
+onAuthStateChanged(auth, (user) => {
+    if (user && sessionStorage.getItem('grovia_admin') === 'true') {
+        document.getElementById('adminEmail').textContent = user.email;
+        // PIN overlay shown by default
+    } else {
+        location.href = 'admin-login.html';
+    }
+});
+</script>
+</body>
+</html>
